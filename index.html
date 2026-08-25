@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INDIAN POST OFFICE MANAGEMENT SYSTEM FOR AGENT</title>
+    <style>
+        :root {
+            --primary: #b91c1c;
+            --primary-hover: #991b1b;
+            --secondary: #0d9488;
+            --bg-gray: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --border-color: #d1d5db;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-gray);
+            color: var(--text-main);
+            padding-bottom: 40px;
+        }
+
+        /* Login Screen Overlay */
+        #loginOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .login-card {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-card h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.3rem;
+        }
+
+        .login-group {
+            margin-bottom: 15px;
+        }
+
+        .login-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .login-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+        }
+
+        .error-msg {
+            color: #dc2626;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            display: none;
+            text-align: center;
+        }
+
+        /* Top Bar */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 1.3rem;
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info {
+            font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 6px 12px;
+            border-radius: 4px;
+        }
+
+        .btn-logout {
+            background-color: white;
+            color: var(--primary);
+            font-weight: bold;
+            padding: 6px 14px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .btn-logout:hover {
+            background-color: #fecdd3;
+        }
+
+        /* Summary Banner */
+        .summary-bar {
+            background-color: #ffffff;
+            padding: 12px 25px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .type-summary-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .type-summary-wrapper label {
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .type-badge {
+            background-color: #f3f4f6;
+            border: 1px solid var(--border-color);
+            color: var(--primary);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .type-badge:hover {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .data-management-tools {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* Layout Container */
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        /* Card Sections */
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        /* Live Customer Search Box Styles */
+        .search-container {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input-wrapper input {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 1rem;
+            border: 2px solid var(--primary);
+            border-radius: 6px;
+            outline: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .search-results-flash {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 0 0 6px 6px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            max-height: 280px;
+            overflow-y: auto;
+            z-index: 500;
+            display: none;
+        }
+
+        .flash-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.15s ease-in-out;
+        }
+
+        .flash-item:hover {
+            background-color: #fee2e2;
+        }
+
+        .flash-item .cust-info {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .flash-item .cust-sub {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        .flash-item .cust-acc {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Customer Details Pop-up Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            animation: fadeIn 0.2s ease-in-out;
+        }
+
+        .modal-card {
+            background: #ffffff;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 1.1rem;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .modal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            font-size: 0.9rem;
+        }
+
+        .modal-field {
+            border-bottom: 1px solid #f3f4f6;
+            padding-bottom: 6px;
+        }
+
+        .modal-field.full {
+            grid-column: 1 / -1;
+        }
+
+        .modal-field label {
+            font-weight: bold;
+            color: #6b7280;
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .modal-field span {
+            color: #111827;
+            font-weight: 600;
+        }
+
+        .modal-footer {
+            padding: 12px 20px;
+            background: #f9fafb;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Form Grid Layout */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #4b5563;
+        }
+
+        input, select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.2);
+        }
+
+        /* Buttons */
+        .button-group {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 18px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-save { background-color: #16a34a; color: white; }
+        .btn-save:hover { background-color: #15803d; }
+
+        .btn-clear { background-color: #6b7280; color: white; }
+        .btn-clear:hover { background-color: #4b5563; }
+
+        .btn-delete { background-color: #dc2626; color: white; }
+        .btn-delete:hover { background-color: #b91c1c; }
+
+        .btn-print { background-color: #4b5563; color: white; }
+        .btn-print:hover { background-color: #374151; }
+
+        .btn-filter { background-color: var(--primary); color: white; }
+        .btn-filter:hover { background-color: var(--primary-hover); }
+
+        .btn-backup { background-color: #2563eb; color: white; }
+        .btn-backup:hover { background-color: #1d4ed8; }
+
+        .btn-restore { background-color: #d97706; color: white; }
+        .btn-restore:hover { background-color: #b45309; }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-action-edit { background-color: #2563eb; color: white; padding: 4px 8px; font-size: 0.75rem; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-action-edit:hover { background-color: #1d4ed8; }
+
+        .btn-action-delete { background-color: #dc2626; color: white; padding: 4px 8px; font-size: 0.75rem; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-action-delete:hover { background-color: #b91c1c; }
+
+        .btn-action-print { background-color: #4b5563; color: white; padding: 4px 8px; font-size: 0.75rem; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-action-print:hover { background-color: #374151; }
+
+        /* Tables */
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: var(--primary);
+        }
+
+        .total-row {
+            background-color: #f1f5f9;
+            font-weight: bold;
+        }
+
+        /* Printable Summary Templates (Hidden on Web View) */
+        .printable-area {
+            display: none;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .printable-area, .printable-area * {
+                visibility: visible;
+            }
+            .printable-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 20px;
+                background: white;
+                display: block !important;
+            }
+            .print-header {
+                text-align: center;
+                border-bottom: 2px solid #000;
+                padding-bottom: 10px;
+                margin-bottom: 20px;
+            }
+            .print-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 15px;
+            }
+            .print-table th, .print-table td {
+                border: 1px solid #000;
+                padding: 8px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Security Login Screen -->
+    <div id="loginOverlay">
+        <div class="login-card">
+            <h2>Portal Authentication</h2>
+            <div id="loginError" class="error-msg">Invalid Log ID or Password</div>
+            <div class="login-group">
+                <label for="loginId">Log ID</label>
+                <input type="text" id="loginId" placeholder="Enter Log ID">
+            </div>
+            <div class="login-group">
+                <label for="loginPass">Password</label>
+                <input type="password" id="loginPass" placeholder="Enter Password">
+            </div>
+            <button class="btn btn-filter" style="width: 100%; margin-top: 10px;" onclick="authenticateUser()">Login</button>
+        </div>
+    </div>
+
+    <!-- Top Bar -->
+    <header>
+        <h1>INDIAN POST OFFICE MANAGEMENT SYSTEM FOR AGENT</h1>
+        <div class="user-section">
+            <div class="user-info">
+                <strong>Log ID:</strong> <span id="displayLogId">MI2745020101403</span>
+            </div>
+            <button class="btn-logout" onclick="logoutUser()">Log Out</button>
+        </div>
+    </header>
+
+    <!-- Account Type Summary & Backup/Restore -->
+    <div class="summary-bar">
+        <div class="type-summary-wrapper">
+            <label>Accounts Summary:</label>
+            <a class="type-badge" onclick="filterByAccountType('ALL')">ALL: <span id="countALL">0</span></a>
+            <a class="type-badge" onclick="filterByAccountType('RD')">RD: <span id="countRD">0</span></a>
+            <a class="type-badge" onclick="filterByAccountType('TD')">TD: <span id="countTD">0</span></a>
+            <a class="type-badge" onclick="filterByAccountType('SA')">SA: <span id="countSA">0</span></a>
+            <a class="type-badge" onclick="filterByAccountType('MIS')">MIS: <span id="countMIS">0</span></a>
+            <a class="type-badge" onclick="filterByAccountType('KVP')">KVP: <span id="countKVP">0</span></a>
+            <a class="type-badge" onclick="filterByAccountType('NSC')">NSC: <span id="countNSC">0</span></a>
+        </div>
+        <div class="data-management-tools">
+            <button class="btn btn-backup" onclick="exportBackupData()">Backup Data</button>
+            <button class="btn btn-restore" onclick="triggerRestoreUpload()">Restore Data</button>
+            <input type="file" id="restoreFileInput" accept=".json" style="display: none;" onchange="importRestoreData(event)">
+        </div>
+    </div>
+
+    <div class="container">
+
+        <!-- Live Search Box Section -->
+        <div class="card">
+            <div class="card-header-flex">
+                <h2>Quick Search Customer Details</h2>
+            </div>
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <input type="text" id="custSearchInput" placeholder="Type Name, Account No, Mobile No, CIF, or PAN to search..." onkeyup="searchCustomersLive()">
+                </div>
+                <!-- Flashing Live Dropdown List -->
+                <div id="searchResultsFlash" class="search-results-flash"></div>
+            </div>
+        </div>
+
+        <!-- Customer Registration Form -->
+        <div class="card" id="clientFormSection">
+            <div class="card-header-flex">
+                <h2>Customer Registration Form</h2>
+            </div>
+            <form id="clientForm">
+                <input type="hidden" id="clientIndex">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="accountType">Account Type</label>
+                        <select id="accountType" onchange="toggleAmountLabel()" required>
+                            <option value="RD">RD</option>
+                            <option value="TD">TD</option>
+                            <option value="SA">SA</option>
+                            <option value="MIS">MIS</option>
+                            <option value="KVP">KVP</option>
+                            <option value="NSC">NSC</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="clientAmount" id="amountLabel">Monthly Denomination</label>
+                        <input type="number" id="clientAmount" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="years">Years</label>
+                        <select id="years" required>
+                            <option value="1 Year">1 Year</option>
+                            <option value="2 Year">2 Year</option>
+                            <option value="3 Year">3 Year</option>
+                            <option value="5 Year">5 Year</option>
+                            <option value="9 Year 7 Months">9 Year 7 Months</option>
+                            <option value="Others">Others</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="clientDate">Date</label>
+                        <input type="date" id="clientDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cifNo">CIF No</label>
+                        <input type="text" id="cifNo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="aslaasNo">ASLAAS No</label>
+                        <input type="text" id="aslaasNo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="accountNo">Account No</label>
+                        <input type="text" id="accountNo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerName">Customer Name</label>
+                        <input type="text" id="customerName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="guardianName">Father/Husband Name</label>
+                        <input type="text" id="guardianName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dob">DOB</label>
+                        <input type="date" id="dob" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="mobileNo">Mobile No</label>
+                        <input type="tel" id="mobileNo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="aadhaarCard">Aadhaar Card</label>
+                        <input type="text" id="aadhaarCard" maxlength="12" placeholder="12 Digit Aadhaar" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="panCard">PAN Card</label>
+                        <input type="text" id="panCard" placeholder="ABCDE1234F" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="address">Address</label>
+                        <input type="text" id="address" required>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="btn btn-save" onclick="saveClient()">Save</button>
+                    <button type="button" class="btn btn-clear" onclick="clearClientForm()">Clear</button>
+                    <button type="button" class="btn btn-delete" onclick="deleteClient()">Delete</button>
+                    <button type="button" class="btn btn-print" onclick="printCustomerSummary()">Print Summary</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Accounts Opened List -->
+        <div class="card" id="accountsListSection">
+            <div class="card-header-flex">
+                <h2>Opened Accounts List <span id="currentFilterTitle" style="font-size: 0.9rem; color: #6b7280; font-weight: normal;">(Showing All)</span></h2>
+                <button class="btn btn-clear" style="font-size: 0.8rem; padding: 4px 10px;" onclick="filterByAccountType('ALL')">Reset View</button>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Acc No</th>
+                            <th>Customer Name</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Tenure</th>
+                            <th>Date</th>
+                            <th>Mobile</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientTableBody">
+                        <!-- Dynamic Rows -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Bulk RD Posting Monthly Form -->
+        <div class="card" id="bulkRdSection">
+            <div class="card-header-flex">
+                <h2>Bulk RD Posting Monthly Form</h2>
+            </div>
+            <form id="bulkRdForm">
+                <input type="hidden" id="rdIndex">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="rdDate">Date</label>
+                        <input type="date" id="rdDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="refNo">Reference No</label>
+                        <input type="text" id="refNo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="rdAmount">Amount</label>
+                        <input type="number" id="rdAmount" step="0.01" oninput="calculateBulkDeductions()" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="df">DF</label>
+                        <input type="text" id="df" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tds">TDS (0.08%)</label>
+                        <input type="number" id="tds" step="0.01" readonly style="background-color: #f3f4f6;" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="commission">Commission (3.92%)</label>
+                        <input type="number" id="commission" step="0.01" readonly style="background-color: #f3f4f6;" required>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" class="btn btn-save" onclick="saveBulkRD()">Save</button>
+                    <button type="button" class="btn btn-clear" onclick="clearBulkRDForm()">Clear</button>
+                    <button type="button" class="btn btn-delete" onclick="deleteBulkRD()">Delete Active Selection</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Bulk RD Posting List & Search Between Dates -->
+        <div class="card" id="bulkRdRecordsSection">
+            <div class="card-header-flex">
+                <h2>Submitted Bulk RD Postings</h2>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-print" style="font-size: 0.8rem; padding: 4px 10px;" onclick="printBulkRDRecords()">Print Filtered List</button>
+                    <button class="btn btn-clear" style="font-size: 0.8rem; padding: 4px 10px;" onclick="resetRdDateFilter()">Reset Filter</button>
+                </div>
+            </div>
+
+            <div class="form-grid filter-group" style="align-items: flex-end; margin-bottom: 15px;">
+                <div class="form-group">
+                    <label for="rdFromDate">From Date</label>
+                    <input type="date" id="rdFromDate">
+                </div>
+                <div class="form-group">
+                    <label for="rdToDate">To Date</label>
+                    <input type="date" id="rdToDate">
+                </div>
+                <div class="form-group">
+                    <button type="button" class="btn btn-filter" onclick="renderRdList()">Search Between Dates</button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Reference No</th>
+                            <th>Amount</th>
+                            <th>DF</th>
+                            <th>TDS</th>
+                            <th>Commission</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rdTableBody">
+                        <!-- Dynamic Bulk RD Rows -->
+                    </tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td colspan="2">Filtered Total</td>
+                            <td id="rdTotalAmount">₹0.00</td>
+                            <td>-</td>
+                            <td id="rdTotalTDS">₹0.00</td>
+                            <td id="rdTotalCommission">₹0.00</td>
+                            <td>-</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- Reporting System -->
+        <div class="card" id="reportingCard">
+            <div class="card-header-flex">
+                <h2>Reporting System</h2>
+            </div>
+            <div class="form-grid filter-group" style="align-items: flex-end;">
+                <div class="form-group">
+                    <label for="fromDate">From Date</label>
+                    <input type="date" id="fromDate">
+                </div>
+                <div class="form-group">
+                    <label for="toDate">To Date</label>
+                    <input type="date" id="toDate">
+                </div>
+                <div class="form-group" style="flex-direction: row; gap: 10px;">
+                    <button type="button" class="btn btn-filter" onclick="generateReport()">Generate Report</button>
+                    <button type="button" class="btn btn-print" onclick="printReportSummary()">Print Report</button>
+                </div>
+            </div>
+
+            <div class="table-responsive" style="margin-top: 20px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Total Entries</th>
+                            <th>Total Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Account Opening Amount</td>
+                            <td id="repAccCount">0</td>
+                            <td id="repAccSum">0.00</td>
+                        </tr>
+                        <tr>
+                            <td>Bulk RD Posting Amount</td>
+                            <td id="repRdCount">0</td>
+                            <td id="repRdSum">0.00</td>
+                        </tr>
+                        <tr class="total-row">
+                            <td>Grand Total</td>
+                            <td id="repTotalCount">0</td>
+                            <td id="repGrandTotal">0.00</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Customer Details Modal -->
+    <div id="customerModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Customer Summary Details</h3>
+                <button class="modal-close" onclick="closeCustomerModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-grid" id="modalCustomerDetails">
+                    <!-- Dynamic Modal Content -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-action-edit" style="font-size: 0.85rem; padding: 6px 14px;" id="modalEditBtn">Edit Entry</button>
+                <button class="btn btn-print" style="font-size: 0.85rem; padding: 6px 14px;" id="modalPrintBtn">Print Summary</button>
+                <button class="btn btn-clear" style="font-size: 0.85rem; padding: 6px 14px;" onclick="closeCustomerModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Print Area -->
+    <div id="printArea" class="printable-area"></div>
+
+    <script>
+        let clients = [];
+        let rdPostings = [];
+        let activeFilter = 'ALL';
+
+        window.onload = function() {
+            const storedClients = localStorage.getItem('postOffice_clients');
+            const storedRD = localStorage.getItem('postOffice_rdPostings');
+            if (storedClients) clients = JSON.parse(storedClients);
+            if (storedRD) rdPostings = JSON.parse(storedRD);
+            updateUI();
+
+            // Close search results when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.search-container')) {
+                    document.getElementById('searchResultsFlash').style.display = 'none';
+                }
+            });
+        };
+
+        function persistData() {
+            localStorage.setItem('postOffice_clients', JSON.stringify(clients));
+            localStorage.setItem('postOffice_rdPostings', JSON.stringify(rdPostings));
+        }
+
+        function authenticateUser() {
+            const enteredId = document.getElementById('loginId').value.trim();
+            const enteredPass = document.getElementById('loginPass').value.trim();
+            const errorElement = document.getElementById('loginError');
+
+            if (enteredId === "MI2745020101403" && enteredPass === "2745020101349") {
+                document.getElementById('loginOverlay').style.display = 'none';
+                errorElement.style.display = 'none';
+                document.getElementById('loginPass').value = "";
+            } else {
+                errorElement.style.display = 'block';
+            }
+        }
+
+        function logoutUser() {
+            document.getElementById('loginOverlay').style.display = 'flex';
+        }
+
+        /* Automatic Calculation for TDS and Commission */
+        function calculateBulkDeductions() {
+            const amountInput = document.getElementById('rdAmount').value;
+            const amount = parseFloat(amountInput) || 0;
+
+            const tds = amount * 0.0008; // 0.08%
+            const commission = amount * 0.0392; // 3.92%
+
+            document.getElementById('tds').value = tds ? tds.toFixed(2) : "";
+            document.getElementById('commission').value = commission ? commission.toFixed(2) : "";
+        }
+
+        /* Live Customer Search & Modal Popup System */
+        function searchCustomersLive() {
+            const query = document.getElementById('custSearchInput').value.trim().toLowerCase();
+            const flashContainer = document.getElementById('searchResultsFlash');
+
+            if (query === "") {
+                flashContainer.style.display = 'none';
+                flashContainer.innerHTML = "";
+                return;
+            }
+
+            const matches = clients.filter((c, index) => {
+                c.originalIndex = index;
+                return (
+                    (c.customerName && c.customerName.toLowerCase().includes(query)) ||
+                    (c.accountNo && c.accountNo.toLowerCase().includes(query)) ||
+                    (c.mobileNo && c.mobileNo.toLowerCase().includes(query)) ||
+                    (c.cifNo && c.cifNo.toLowerCase().includes(query)) ||
+                    (c.panCard && c.panCard.toLowerCase().includes(query))
+                );
+            });
+
+            if (matches.length === 0) {
+                flashContainer.innerHTML = `<div class="flash-item" style="cursor:default;"><span class="cust-sub">No customer records found matching "${query}"</span></div>`;
+            } else {
+                let html = "";
+                matches.forEach(c => {
+                    html += `
+                        <div class="flash-item" onclick="openCustomerModal(${c.originalIndex})">
+                            <div>
+                                <div class="cust-info">${c.customerName}</div>
+                                <div class="cust-sub">Acc: ${c.accountNo} | CIF: ${c.cifNo} | Mob: ${c.mobileNo || 'N/A'}</div>
+                            </div>
+                            <span class="cust-acc">${c.accountType} - ₹${c.amount.toFixed(2)}</span>
+                        </div>
+                    `;
+                });
+                flashContainer.innerHTML = html;
+            }
+
+            flashContainer.style.display = 'block';
+        }
+
+        function openCustomerModal(index) {
+            const c = clients[index];
+            if (!c) return;
+
+            document.getElementById('searchResultsFlash').style.display = 'none';
+
+            const detailsGrid = document.getElementById('modalCustomerDetails');
+            detailsGrid.innerHTML = `
+                <div class="modal-field">
+                    <label>Account Type</label>
+                    <span>${c.accountType}</span>
+                </div>
+                <div class="modal-field">
+                    <label>Amount / Denomination</label>
+                    <span>₹${c.amount.toFixed(2)}</span>
+                </div>
+                <div class="modal-field">
+                    <label>Account No</label>
+                    <span>${c.accountNo}</span>
+                </div>
+                <div class="modal-field">
+                    <label>Customer Name</label>
+                    <span>${c.customerName}</span>
+                </div>
+                <div class="modal-field">
+                    <label>Father / Husband Name</label>
+                    <span>${c.guardianName || '-'}</span>
+                </div>
+                <div class="modal-field">
+                    <label>CIF No</label>
+                    <span>${c.cifNo || '-'}</span>
+                </div>
+                <div class="modal-field">
+                    <label>ASLAAS No</label>
+                    <span>${c.aslaasNo || '-'}</span>
+                </div>
+                <div class="modal-field">
+                    <label>Date of Opening</label>
+                    <span>${c.date}</span>
+                </div>
+                <div class="modal-field">
+                    <label>Tenure</label>
+                    <span>${c.years}</span>
+                </div>
+                <div class="modal-field">
+                    <label>Date of Birth</label>
+                    <span>${c.dob || '-'}</span>
+                </div>
+                <div class="modal-field">
+                    <label>Mobile No</label>
+                    <span>${c.mobileNo || '-'}</span>
+                </div>
+                <div class="modal-field">
+                    <label>Aadhaar Card</label>
+                    <span>${c.aadhaarCard || '-'}</span>
+                </div>
+                <div class="modal-field">
+                    <label>PAN Card</label>
+                    <span>${c.panCard || '-'}</span>
+                </div>
+                <div class="modal-field full">
+                    <label>Address</label>
+                    <span>${c.address || '-'}</span>
+                </div>
+            `;
+
+            document.getElementById('modalEditBtn').onclick = function() {
+                closeCustomerModal();
+                loadClientToForm(index);
+            };
+
+            document.getElementById('modalPrintBtn').onclick = function() {
+                printSingleCustomer(index);
+            };
+
+            document.getElementById('customerModal').style.display = 'flex';
+        }
+
+        function closeCustomerModal() {
+            document.getElementById('customerModal').style.display = 'none';
+        }
+
+        function toggleAmountLabel() {
+            const accType = document.getElementById('accountType').value;
+            const label = document.getElementById('amountLabel');
+            label.innerText = accType === 'RD' ? "Monthly Denomination" : "Amount";
+        }
+
+        function saveClient() {
+            const index = document.getElementById('clientIndex').value;
+            const data = {
+                accountType: document.getElementById('accountType').value,
+                amount: parseFloat(document.getElementById('clientAmount').value) || 0,
+                years: document.getElementById('years').value,
+                date: document.getElementById('clientDate').value,
+                cifNo: document.getElementById('cifNo').value,
+                aslaasNo: document.getElementById('aslaasNo').value,
+                accountNo: document.getElementById('accountNo').value,
+                customerName: document.getElementById('customerName').value,
+                guardianName: document.getElementById('guardianName').value,
+                dob: document.getElementById('dob').value,
+                mobileNo: document.getElementById('mobileNo').value,
+                aadhaarCard: document.getElementById('aadhaarCard').value,
+                panCard: document.getElementById('panCard').value,
+                address: document.getElementById('address').value
+            };
+
+            if (!data.accountNo || !data.customerName || !data.date) {
+                alert("Please fill in required fields (Date, Account No, Customer Name).");
+                return;
+            }
+
+            if (index === "") {
+                clients.push(data);
+            } else {
+                clients[index] = data;
+                document.getElementById('clientIndex').value = "";
+            }
+
+            persistData();
+            clearClientForm();
+            updateUI();
+        }
+
+        function clearClientForm() {
+            document.getElementById('clientForm').reset();
+            document.getElementById('clientIndex').value = "";
+            toggleAmountLabel();
+        }
+
+        function loadClientToForm(idx) {
+            const c = clients[idx];
+            document.getElementById('clientIndex').value = idx;
+            document.getElementById('accountType').value = c.accountType;
+            toggleAmountLabel();
+            document.getElementById('clientAmount').value = c.amount;
+            document.getElementById('years').value = c.years;
+            document.getElementById('clientDate').value = c.date;
+            document.getElementById('cifNo').value = c.cifNo;
+            document.getElementById('aslaasNo').value = c.aslaasNo || "";
+            document.getElementById('accountNo').value = c.accountNo;
+            document.getElementById('customerName').value = c.customerName;
+            document.getElementById('guardianName').value = c.guardianName;
+            document.getElementById('dob').value = c.dob;
+            document.getElementById('mobileNo').value = c.mobileNo;
+            document.getElementById('aadhaarCard').value = c.aadhaarCard;
+            document.getElementById('panCard').value = c.panCard;
+            document.getElementById('address').value = c.address;
+
+            document.getElementById('clientFormSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function deleteClientDirect(idx) {
+            if (confirm("Are you sure you want to delete this customer account?")) {
+                clients.splice(idx, 1);
+                persistData();
+                clearClientForm();
+                updateUI();
+            }
+        }
+
+        function deleteClient() {
+            const idx = document.getElementById('clientIndex').value;
+            if (idx !== "") {
+                deleteClientDirect(idx);
+            } else {
+                alert("Select an account from the table below to delete.");
+            }
+        }
+
+        function printSingleCustomer(idx) {
+            const c = clients[idx];
+            const printContainer = document.getElementById('printArea');
+            printContainer.innerHTML = `
+                <div class="print-header">
+                    <h2>INDIAN POST OFFICE MANAGEMENT SYSTEM</h2>
+                    <h3>Customer Account Summary</h3>
+                </div>
+                <table class="print-table">
+                    <tr><td><strong>Account Type:</strong></td><td>${c.accountType}</td></tr>
+                    <tr><td><strong>Amount / Denomination:</strong></td><td>₹${c.amount.toFixed(2)}</td></tr>
+                    <tr><td><strong>Tenure:</strong></td><td>${c.years}</td></tr>
+                    <tr><td><strong>Date:</strong></td><td>${c.date}</td></tr>
+                    <tr><td><strong>CIF No:</strong></td><td>${c.cifNo}</td></tr>
+                    <tr><td><strong>ASLAAS No:</strong></td><td>${c.aslaasNo || '-'}</td></tr>
+                    <tr><td><strong>Account No:</strong></td><td>${c.accountNo}</td></tr>
+                    <tr><td><strong>Customer Name:</strong></td><td>${c.customerName}</td></tr>
+                    <tr><td><strong>Father/Husband Name:</strong></td><td>${c.guardianName}</td></tr>
+                    <tr><td><strong>DOB:</strong></td><td>${c.dob}</td></tr>
+                    <tr><td><strong>Mobile No:</strong></td><td>${c.mobileNo || '-'}</td></tr>
+                    <tr><td><strong>Aadhaar Card:</strong></td><td>${c.aadhaarCard}</td></tr>
+                    <tr><td><strong>PAN Card:</strong></td><td>${c.panCard}</td></tr>
+                    <tr><td><strong>Address:</strong></td><td>${c.address}</td></tr>
+                </table>
+            `;
+            window.print();
+        }
+
+        /* Bulk RD Functions */
+        function saveBulkRD() {
+            const index = document.getElementById('rdIndex').value;
+            const data = {
+                date: document.getElementById('rdDate').value,
+                refNo: document.getElementById('refNo').value,
+                amount: parseFloat(document.getElementById('rdAmount').value) || 0,
+                df: document.getElementById('df').value,
+                tds: parseFloat(document.getElementById('tds').value) || 0,
+                commission: parseFloat(document.getElementById('commission').value) || 0
+            };
+
+            if (!data.date || !data.refNo) {
+                alert("Please fill in Date and Reference No.");
+                return;
+            }
+
+            if (index === "") {
+                rdPostings.push(data);
+            } else {
+                rdPostings[index] = data;
+                document.getElementById('rdIndex').value = "";
+            }
+
+            persistData();
+            clearBulkRDForm();
+            updateUI();
+        }
+
+        function clearBulkRDForm() {
+            document.getElementById('bulkRdForm').reset();
+            document.getElementById('rdIndex').value = "";
+        }
+
+        function loadRdToForm(idx) {
+            const r = rdPostings[idx];
+            document.getElementById('rdIndex').value = idx;
+            document.getElementById('rdDate').value = r.date;
+            document.getElementById('refNo').value = r.refNo;
+            document.getElementById('rdAmount').value = r.amount;
+            document.getElementById('df').value = r.df;
+            document.getElementById('tds').value = r.tds;
+            document.getElementById('commission').value = r.commission;
+
+            document.getElementById('bulkRdSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function deleteRdDirect(idx) {
+            if (confirm("Are you sure you want to delete this RD Posting record?")) {
+                rdPostings.splice(idx, 1);
+                persistData();
+                clearBulkRDForm();
+                updateUI();
+            }
+        }
+
+        function deleteBulkRD() {
+            const index = document.getElementById('rdIndex').value;
+            if (index !== "") {
+                deleteRdDirect(index);
+            } else {
+                alert("Select an RD entry from the table to delete.");
+            }
+        }
+
+        function resetRdDateFilter() {
+            document.getElementById('rdFromDate').value = "";
+            document.getElementById('rdToDate').value = "";
+            renderRdList();
+        }
+
+        function getFilteredRdData() {
+            const from = document.getElementById('rdFromDate').value;
+            const to = document.getElementById('rdToDate').value;
+
+            return rdPostings.filter(r => {
+                let valid = true;
+                if (from && r.date < from) valid = false;
+                if (to && r.date > to) valid = false;
+                return valid;
+            });
+        }
+
+        function renderRdList() {
+            const tbody = document.getElementById('rdTableBody');
+            tbody.innerHTML = "";
+
+            const filteredData = getFilteredRdData();
+
+            let totalAmt = 0;
+            let totalTds = 0;
+            let totalComm = 0;
+
+            filteredData.forEach((r) => {
+                const originalIndex = rdPostings.indexOf(r);
+                totalAmt += r.amount;
+                totalTds += r.tds;
+                totalComm += r.commission;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${r.date}</td>
+                        <td>${r.refNo}</td>
+                        <td>₹${r.amount.toFixed(2)}</td>
+                        <td>${r.df}</td>
+                        <td>₹${r.tds.toFixed(2)}</td>
+                        <td>₹${r.commission.toFixed(2)}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-action-edit" onclick="loadRdToForm(${originalIndex})">Edit</button>
+                                <button class="btn-action-delete" onclick="deleteRdDirect(${originalIndex})">Delete</button>
+                                <button class="btn-action-print" onclick="printSingleRdRecord(${originalIndex})">Print</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('rdTotalAmount').innerText = `₹${totalAmt.toFixed(2)}`;
+            document.getElementById('rdTotalTDS').innerText = `₹${totalTds.toFixed(2)}`;
+            document.getElementById('rdTotalCommission').innerText = `₹${totalComm.toFixed(2)}`;
+        }
+
+        function printSingleRdRecord(idx) {
+            const r = rdPostings[idx];
+            const printContainer = document.getElementById('printArea');
+            printContainer.innerHTML = `
+                <div class="print-header">
+                    <h2>INDIAN POST OFFICE MANAGEMENT SYSTEM</h2>
+                    <h3>Bulk RD Posting Record Summary</h3>
+                </div>
+                <table class="print-table">
+                    <tr><td><strong>Date:</strong></td><td>${r.date}</td></tr>
+                    <tr><td><strong>Reference No:</strong></td><td>${r.refNo}</td></tr>
+                    <tr><td><strong>Amount:</strong></td><td>₹${r.amount.toFixed(2)}</td></tr>
+                    <tr><td><strong>DF:</strong></td><td>${r.df}</td></tr>
+                    <tr><td><strong>TDS:</strong></td><td>₹${r.tds.toFixed(2)}</td></tr>
+                    <tr><td><strong>Commission:</strong></td><td>₹${r.commission.toFixed(2)}</td></tr>
+                </table>
+            `;
+            window.print();
+        }
+
+        function printBulkRDRecords() {
+            const filteredData = getFilteredRdData();
+            const from = document.getElementById('rdFromDate').value || 'Beginning';
+            const to = document.getElementById('rdToDate').value || 'Present';
+
+            if (filteredData.length === 0) {
+                alert("No Bulk RD records available to print for selected date range.");
+                return;
+            }
+
+            let rowsHtml = '';
+            let sumAmt = 0, sumTds = 0, sumComm = 0;
+
+            filteredData.forEach(r => {
+                sumAmt += r.amount;
+                sumTds += r.tds;
+                sumComm += r.commission;
+
+                rowsHtml += `
+                    <tr>
+                        <td>${r.date}</td>
+                        <td>${r.refNo}</td>
+                        <td>₹${r.amount.toFixed(2)}</td>
+                        <td>${r.df}</td>
+                        <td>₹${r.tds.toFixed(2)}</td>
+                        <td>₹${r.commission.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            const printContainer = document.getElementById('printArea');
+            printContainer.innerHTML = `
+                <div class="print-header">
+                    <h2>INDIAN POST OFFICE MANAGEMENT SYSTEM</h2>
+                    <h3>Submitted Bulk RD Postings Summary</h3>
+                    <p><strong>Date Range:</strong> ${from} to ${to}</p>
+                </div>
+                <table class="print-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Ref No</th>
+                            <th>Amount</th>
+                            <th>DF</th>
+                            <th>TDS</th>
+                            <th>Commission</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                        <tr style="font-weight:bold; background-color:#f1f5f9;">
+                            <td colspan="2">Total</td>
+                            <td>₹${sumAmt.toFixed(2)}</td>
+                            <td>-</td>
+                            <td>₹${sumTds.toFixed(2)}</td>
+                            <td>₹${sumComm.toFixed(2)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+
+            window.print();
+        }
+
+        function filterByAccountType(type) {
+            activeFilter = type;
+            renderAccountsList();
+            document.getElementById('accountsListSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function renderAccountsList() {
+            const tbody = document.getElementById('clientTableBody');
+            tbody.innerHTML = "";
+
+            const titleElement = document.getElementById('currentFilterTitle');
+            titleElement.innerText = activeFilter === 'ALL' ? "(Showing All)" : `(Filtered by: ${activeFilter})`;
+
+            clients.forEach((c, i) => {
+                if (activeFilter === 'ALL' || c.accountType === activeFilter) {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${c.accountNo}</td>
+                            <td>${c.customerName}</td>
+                            <td><strong>${c.accountType}</strong></td>
+                            <td>₹${c.amount.toFixed(2)}</td>
+                            <td>${c.years}</td>
+                            <td>${c.date}</td>
+                            <td>${c.mobileNo || '-'}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-action-edit" onclick="loadClientToForm(${i})">Edit</button>
+                                    <button class="btn-action-delete" onclick="deleteClientDirect(${i})">Delete</button>
+                                    <button class="btn-action-print" onclick="printSingleCustomer(${i})">Print</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+        }
+
+        function updateUI() {
+            const counts = { ALL: clients.length, RD: 0, TD: 0, SA: 0, MIS: 0, KVP: 0, NSC: 0 };
+
+            clients.forEach(c => {
+                if (counts[c.accountType] !== undefined) {
+                    counts[c.accountType]++;
+                }
+            });
+
+            document.getElementById('countALL').innerText = counts.ALL;
+            document.getElementById('countRD').innerText = counts.RD;
+            document.getElementById('countTD').innerText = counts.TD;
+            document.getElementById('countSA').innerText = counts.SA;
+            document.getElementById('countMIS').innerText = counts.MIS;
+            document.getElementById('countKVP').innerText = counts.KVP;
+            document.getElementById('countNSC').innerText = counts.NSC;
+
+            renderAccountsList();
+            renderRdList();
+            generateReport();
+        }
+
+        function generateReport() {
+            const from = document.getElementById('fromDate').value;
+            const to = document.getElementById('toDate').value;
+
+            let filteredClients = clients;
+            let filteredRd = rdPostings;
+
+            if (from) {
+                filteredClients = filteredClients.filter(c => c.date >= from);
+                filteredRd = filteredRd.filter(r => r.date >= from);
+            }
+            if (to) {
+                filteredClients = filteredClients.filter(c => c.date <= to);
+                filteredRd = filteredRd.filter(r => r.date <= to);
+            }
+
+            const accSum = filteredClients.reduce((sum, c) => sum + c.amount, 0);
+            const rdSum = filteredRd.reduce((sum, r) => sum + r.amount, 0);
+
+            document.getElementById('repAccCount').innerText = filteredClients.length;
+            document.getElementById('repAccSum').innerText = accSum.toFixed(2);
+
+            document.getElementById('repRdCount').innerText = filteredRd.length;
+            document.getElementById('repRdSum').innerText = rdSum.toFixed(2);
+
+            document.getElementById('repTotalCount').innerText = filteredClients.length + filteredRd.length;
+            document.getElementById('repGrandTotal').innerText = (accSum + rdSum).toFixed(2);
+        }
+
+        function exportBackupData() {
+            if (clients.length === 0 && rdPostings.length === 0) {
+                alert("No system data found to backup.");
+                return;
+            }
+
+            const dataPackage = {
+                version: "1.2",
+                backupDate: new Date().toISOString(),
+                clients: clients,
+                rdPostings: rdPostings
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataPackage, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `PostOffice_Backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function triggerRestoreUpload() {
+            document.getElementById('restoreFileInput').click();
+        }
+
+        function importRestoreData(event) {
+            const fileReader = new FileReader();
+            fileReader.onload = function(e) {
+                try {
+                    const parsedData = JSON.parse(e.target.result);
+                    if (parsedData.clients && parsedData.rdPostings) {
+                        if (confirm("Restoring will overwrite current active session data. Continue?")) {
+                            clients = parsedData.clients;
+                            rdPostings = parsedData.rdPostings;
+                            persistData();
+                            updateUI();
+                            alert("Data successfully restored!");
+                        }
+                    } else {
+                        alert("Invalid backup file structure.");
+                    }
+                } catch (err) {
+                    alert("Error reading backup JSON file.");
+                }
+            };
+            if (event.target.files[0]) {
+                fileReader.readAsText(event.target.files[0]);
+            }
+        }
+
+        function printCustomerSummary() {
+            const name = document.getElementById('customerName').value;
+            const accNo = document.getElementById('accountNo').value;
+
+            if (!name || !accNo) {
+                alert("Please select or enter customer information first to print details.");
+                return;
+            }
+
+            const printContainer = document.getElementById('printArea');
+            printContainer.innerHTML = `
+                <div class="print-header">
+                    <h2>INDIAN POST OFFICE MANAGEMENT SYSTEM</h2>
+                    <h3>Customer Registration Summary</h3>
+                </div>
+                <table class="print-table">
+                    <tr><td><strong>Account Type:</strong></td><td>${document.getElementById('accountType').value}</td></tr>
+                    <tr><td><strong>Amount / Denomination:</strong></td><td>₹${document.getElementById('clientAmount').value}</td></tr>
+                    <tr><td><strong>Tenure:</strong></td><td>${document.getElementById('years').value}</td></tr>
+                    <tr><td><strong>Date:</strong></td><td>${document.getElementById('clientDate').value}</td></tr>
+                    <tr><td><strong>CIF No:</strong></td><td>${document.getElementById('cifNo').value}</td></tr>
+                    <tr><td><strong>ASLAAS No:</strong></td><td>${document.getElementById('aslaasNo').value}</td></tr>
+                    <tr><td><strong>Account No:</strong></td><td>${document.getElementById('accountNo').value}</td></tr>
+                    <tr><td><strong>Customer Name:</strong></td><td>${document.getElementById('customerName').value}</td></tr>
+                    <tr><td><strong>Father/Husband Name:</strong></td><td>${document.getElementById('guardianName').value}</td></tr>
+                    <tr><td><strong>DOB:</strong></td><td>${document.getElementById('dob').value}</td></tr>
+                    <tr><td><strong>Mobile No:</strong></td><td>${document.getElementById('mobileNo').value}</td></tr>
+                    <tr><td><strong>Aadhaar Card:</strong></td><td>[Aadhaar Redacted]</td></tr>
+                    <tr><td><strong>PAN Card:</strong></td><td>${document.getElementById('panCard').value}</td></tr>
+                    <tr><td><strong>Address:</strong></td><td>${document.getElementById('address').value}</td></tr>
+                </table>
+            `;
+
+            window.print();
+        }
+
+        function printReportSummary() {
+            const printContainer = document.getElementById('printArea');
+            const fromDate = document.getElementById('fromDate').value || 'Beginning';
+            const toDate = document.getElementById('toDate').value || 'Present';
+
+            printContainer.innerHTML = `
+                <div class="print-header">
+                    <h2>INDIAN POST OFFICE MANAGEMENT SYSTEM</h2>
+                    <h3>Financial & Reporting Summary</h3>
+                    <p><strong>Period:</strong> ${fromDate} to ${toDate}</p>
+                </div>
+                <table class="print-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Total Entries</th>
+                            <th>Total Amount (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Account Opening Amount</td>
+                            <td>${document.getElementById('repAccCount').innerText}</td>
+                            <td>${document.getElementById('repAccSum').innerText}</td>
+                        </tr>
+                        <tr>
+                            <td>Bulk RD Posting Amount</td>
+                            <td>${document.getElementById('repRdCount').innerText}</td>
+                            <td>${document.getElementById('repRdSum').innerText}</td>
+                        </tr>
+                        <tr style="font-weight: bold;">
+                            <td>Grand Total</td>
+                            <td>${document.getElementById('repTotalCount').innerText}</td>
+                            <td>${document.getElementById('repGrandTotal').innerText}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+
+            window.print();
+        }
+    </script>
+</body>
+</html>
