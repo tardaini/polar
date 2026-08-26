@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INDIAN POST OFFICE MANAGEMENT SYSTEM FOR AGENT</title>
+    <title>Indian Post Office Management System</title>
     <style>
         :root {
-            --primary: #b91c1c;
-            --primary-hover: #991b1b;
-            --secondary: #0d9488;
-            --bg-gray: #f3f4f6;
-            --card-bg: #ffffff;
-            --text-main: #1f2937;
-            --border-color: #d1d5db;
+            --primary-red: #c8102e;
+            --secondary-red: #9b0b21;
+            --post-yellow: #ffcc00;
+            --bg-gray: #f4f6f9;
+            --card-white: #ffffff;
+            --text-dark: #1f2937;
+            --border-color: #e5e7eb;
         }
 
         * {
@@ -24,18 +24,364 @@
 
         body {
             background-color: var(--bg-gray);
-            color: var(--text-main);
-            padding-bottom: 40px;
+            color: var(--text-dark);
+            line-height: 1.5;
+            padding-bottom: 60px;
         }
 
-        /* Login Screen Overlay */
-        #loginOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
+        /* Header Navigation */
+        header {
+            background-color: var(--primary-red);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand-title h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .brand-title p {
+            font-size: 0.85rem;
+            color: var(--post-yellow);
+        }
+
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-logout {
+            background-color: transparent;
+            border: 1px solid white;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background-color: white;
+            color: var(--primary-red);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        /* Search Section */
+        .search-container {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .search-input {
             width: 100%;
-            height: 100%;
-            background-color: var(--bg-gray);
+            padding: 12px 20px;
+            font-size: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .search-input:focus {
+            border-color: var(--primary-red);
+        }
+
+        .search-results-flash {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 50;
+            display: none;
+        }
+
+        .flash-item {
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .flash-item:last-child {
+            border-bottom: none;
+        }
+
+        .flash-item:hover {
+            background-color: #fef2f2;
+        }
+
+        .cust-info {
+            font-weight: 600;
+        }
+
+        .cust-sub {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        .cust-acc {
+            color: var(--primary-red);
+            font-weight: 600;
+        }
+
+        /* Dashboard Overview Cards */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 2rem;
+        }
+
+        .dash-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .dash-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-red);
+        }
+
+        .dash-card h4 {
+            font-size: 0.85rem;
+            color: #6b7280;
+            text-transform: uppercase;
+        }
+
+        .dash-card .count {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-red);
+            margin-top: 5px;
+        }
+
+        /* Form Sections */
+        .card-section {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .section-header {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-red);
+            margin-bottom: 15px;
+            border-bottom: 2px solid #fef2f2;
+            padding-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #374151;
+        }
+
+        .form-group input, .form-group select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            outline: none;
+            font-size: 0.95rem;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--primary-red);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn-primary { background-color: var(--primary-red); color: white; }
+        .btn-secondary { background-color: #6b7280; color: white; }
+        .btn-danger { background-color: #dc2626; color: white; }
+        .btn-success { background-color: #16a34a; color: white; }
+
+        /* Tables */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: #334155;
+            padding: 10px;
+            border-bottom: 2px solid var(--border-color);
+            font-weight: 600;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-action-edit { background: #3b82f6; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; }
+        .btn-action-delete { background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; }
+        .btn-action-print { background: #10b981; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; }
+
+        /* RD Selection Box */
+        .rd-selection-box {
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 15px;
+            background-color: #fafafa;
+        }
+
+        .rd-account-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+        }
+
+        /* Modal styling */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            padding: 20px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .modal-body-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+
+        .modal-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-field label {
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .modal-field.full {
+            grid-column: span 2;
+        }
+
+        /* Login Overlay */
+        .login-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #1f2937;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -46,672 +392,220 @@
             background: white;
             padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             width: 100%;
-            max-width: 400px;
+            max-width: 380px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
         }
 
         .login-card h2 {
-            color: var(--primary);
+            color: var(--primary-red);
             margin-bottom: 20px;
             text-align: center;
-            font-size: 1.3rem;
         }
 
-        .login-group {
-            margin-bottom: 15px;
-        }
-
-        .login-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .login-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-        }
-
-        .error-msg {
-            color: #dc2626;
-            font-size: 0.85rem;
-            margin-bottom: 10px;
-            display: none;
-            text-align: center;
-        }
-
-        /* Top Bar */
-        header {
-            background-color: var(--primary);
-            color: white;
-            padding: 15px 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        header h1 {
-            font-size: 1.3rem;
-        }
-
-        .user-section {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .user-info {
-            font-size: 0.9rem;
-            background: rgba(255, 255, 255, 0.15);
-            padding: 6px 12px;
-            border-radius: 4px;
-        }
-
-        .btn-logout {
-            background-color: white;
-            color: var(--primary);
-            font-weight: bold;
-            padding: 6px 14px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.2s, color 0.2s;
-        }
-
-        .btn-logout:hover {
-            background-color: #fecdd3;
-        }
-
-        /* Summary Banner */
-        .summary-bar {
-            background-color: #ffffff;
-            padding: 12px 25px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .type-summary-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .type-summary-wrapper label {
-            font-weight: bold;
-            color: #374151;
-        }
-
-        .type-badge {
-            background-color: #f3f4f6;
-            border: 1px solid var(--border-color);
-            color: var(--primary);
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .type-badge:hover {
-            background-color: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .data-management-tools {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        /* Layout Container */
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 0 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        /* Card Sections */
-        .card {
-            background: var(--card-bg);
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        .card-header-flex {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #e5e7eb;
-            padding-bottom: 8px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .card h2 {
-            font-size: 1.2rem;
-            color: var(--primary);
-        }
-
-        /* Live Customer Search Box Styles */
-        .search-container {
-            position: relative;
-            margin-bottom: 15px;
-        }
-
-        .search-input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .search-input-wrapper input {
-            width: 100%;
-            padding: 12px 15px;
-            font-size: 1rem;
-            border: 2px solid var(--primary);
-            border-radius: 6px;
-            outline: none;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .search-results-flash {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #ffffff;
-            border: 1px solid var(--border-color);
-            border-radius: 0 0 6px 6px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-            max-height: 280px;
-            overflow-y: auto;
-            z-index: 500;
-            display: none;
-        }
-
-        .flash-item {
-            padding: 10px 15px;
-            border-bottom: 1px solid #f3f4f6;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background 0.15s ease-in-out;
-        }
-
-        .flash-item:hover {
-            background-color: #fee2e2;
-        }
-
-        .flash-item .cust-info {
-            font-weight: 600;
-            color: var(--text-main);
-        }
-
-        .flash-item .cust-sub {
-            font-size: 0.8rem;
-            color: #6b7280;
-        }
-
-        .flash-item .cust-acc {
-            background: #e0f2fe;
-            color: #0369a1;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        /* Customer Details Pop-up Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-
-        .modal-card {
-            background: #ffffff;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 600px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            overflow: hidden;
-        }
-
-        .modal-header {
-            background: var(--primary);
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-header h3 {
-            font-size: 1.1rem;
-        }
-
-        .modal-close {
-            background: transparent;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            line-height: 1;
-        }
-
-        .modal-body {
-            padding: 20px;
-            max-height: 70vh;
-            overflow-y: auto;
-        }
-
-        .modal-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            font-size: 0.9rem;
-        }
-
-        .modal-field {
-            border-bottom: 1px solid #f3f4f6;
-            padding-bottom: 6px;
-        }
-
-        .modal-field.full {
-            grid-column: 1 / -1;
-        }
-
-        .modal-field label {
-            font-weight: bold;
-            color: #6b7280;
-            display: block;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-        }
-
-        .modal-field span {
-            color: #111827;
-            font-weight: 600;
-        }
-
-        .modal-footer {
-            padding: 12px 20px;
-            background: #f9fafb;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        /* Form Grid Layout */
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 15px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .form-group.full-width {
-            grid-column: 1 / -1;
-        }
-
-        label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #4b5563;
-        }
-
-        input, select {
-            padding: 8px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 0.9rem;
-            outline: none;
-        }
-
-        input:focus, select:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.2);
-        }
-
-        /* RD Accounts Selector Container */
-        .rd-selection-box {
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 10px;
-            background-color: #f9fafb;
-        }
-
-        .rd-account-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 6px 8px;
-            border-bottom: 1px solid #e5e7eb;
-            font-size: 0.85rem;
-            cursor: pointer;
-        }
-
-        .rd-account-item:last-child {
-            border-bottom: none;
-        }
-
-        .rd-account-item input[type="radio"] {
-            cursor: pointer;
-        }
-
-        /* Buttons */
-        .button-group {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 8px 18px;
-            border: none;
-            border-radius: 4px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .btn-save { background-color: #16a34a; color: white; }
-        .btn-save:hover { background-color: #15803d; }
-
-        .btn-clear { background-color: #6b7280; color: white; }
-        .btn-clear:hover { background-color: #4b5563; }
-
-        .btn-delete { background-color: #dc2626; color: white; }
-        .btn-delete:hover { background-color: #b91c1c; }
-
-        .btn-print { background-color: #4b5563; color: white; }
-        .btn-print:hover { background-color: #374151; }
-
-        .btn-filter { background-color: var(--primary); color: white; }
-        .btn-filter:hover { background-color: var(--primary-hover); }
-
-        .btn-backup { background-color: #2563eb; color: white; }
-        .btn-backup:hover { background-color: #1d4ed8; }
-
-        .btn-restore { background-color: #d97706; color: white; }
-        .btn-restore:hover { background-color: #b45309; }
-
-        .action-buttons {
-            display: flex;
-            gap: 5px;
-        }
-
-        .btn-action-edit { background-color: #2563eb; color: white; padding: 4px 8px; font-size: 0.75rem; border: none; border-radius: 4px; cursor: pointer; }
-        .btn-action-edit:hover { background-color: #1d4ed8; }
-
-        .btn-action-delete { background-color: #dc2626; color: white; padding: 4px 8px; font-size: 0.75rem; border: none; border-radius: 4px; cursor: pointer; }
-        .btn-action-delete:hover { background-color: #b91c1c; }
-
-        .btn-action-print { background-color: #4b5563; color: white; padding: 4px 8px; font-size: 0.75rem; border: none; border-radius: 4px; cursor: pointer; }
-        .btn-action-print:hover { background-color: #374151; }
-
-        /* Tables */
-        .table-responsive {
-            overflow-x: auto;
-            margin-top: 15px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-            text-align: left;
-        }
-
-        th, td {
-            padding: 10px;
-            border: 1px solid var(--border-color);
-        }
-
-        th {
-            background-color: #f8fafc;
-            color: var(--primary);
-        }
-
-        .total-row {
-            background-color: #f1f5f9;
-            font-weight: bold;
-        }
-
-        /* Printable Summary Templates (Hidden on Web View) */
-        .printable-area {
-            display: none;
-        }
-
+        /* Print Layout */
         @media print {
             body * {
                 visibility: hidden;
             }
-            .printable-area, .printable-area * {
+            #printArea, #printArea * {
                 visibility: visible;
             }
-            .printable-area {
+            #printArea {
                 position: absolute;
                 left: 0;
                 top: 0;
                 width: 100%;
-                padding: 20px;
-                background: white;
-                display: block !important;
             }
-            .print-header {
-                text-align: center;
-                border-bottom: 2px solid #000;
-                padding-bottom: 10px;
-                margin-bottom: 20px;
+            .no-print {
+                display: none !important;
             }
-            .print-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 15px;
-            }
-            .print-table th, .print-table td {
-                border: 1px solid #000;
-                padding: 8px;
-                font-size: 0.9rem;
-            }
+        }
+
+        .print-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+        }
+
+        .print-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .print-table td, .print-table th {
+            border: 1px solid #000;
+            padding: 8px;
+            font-size: 0.85rem;
         }
     </style>
 </head>
 <body>
 
-    <!-- Security Login Screen -->
-    <div id="loginOverlay">
+    <!-- LOGIN OVERLAY -->
+    <div id="loginOverlay" class="login-overlay">
         <div class="login-card">
-            <h2>Portal Authentication</h2>
-            <div id="loginError" class="error-msg">Invalid Log ID or Password</div>
-            <div class="login-group">
-                <label for="loginId">Log ID</label>
-                <input type="text" id="loginId" placeholder="Enter Log ID">
+            <h2>Post Office Portal</h2>
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label>User ID</label>
+                <input type="text" id="loginId" placeholder="Enter User ID">
             </div>
-            <div class="login-group">
-                <label for="loginPass">Password</label>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label>Password</label>
                 <input type="password" id="loginPass" placeholder="Enter Password">
             </div>
-            <button class="btn btn-filter" style="width: 100%; margin-top: 10px;" onclick="authenticateUser()">Login</button>
+            <button class="btn btn-primary" style="width: 100%;" onclick="authenticateUser()">Login</button>
+            <p id="loginError" style="color: red; font-size: 0.85rem; margin-top: 10px; display: none; text-align: center;">Invalid User ID or Password</p>
         </div>
     </div>
 
-    <!-- Top Bar -->
-    <header>
-        <h1>INDIAN POST OFFICE MANAGEMENT SYSTEM FOR AGENT</h1>
-        <div class="user-section">
-            <div class="user-info">
-                <strong>Log ID:</strong> <span id="displayLogId">MI2745020101403</span>
+    <!-- MAIN HEADER -->
+    <header class="no-print">
+        <div class="brand-container">
+            <div class="brand-title">
+                <h1>INDIAN POST OFFICE</h1>
+                <p>Account & Bulk RD Management Portal</p>
             </div>
-            <button class="btn-logout" onclick="logoutUser()">Log Out</button>
+        </div>
+        <div class="user-actions">
+            <button class="btn-logout" onclick="logoutUser()">Logout</button>
         </div>
     </header>
 
-    <!-- Account Type Summary & Backup/Restore -->
-    <div class="summary-bar">
-        <div class="type-summary-wrapper">
-            <label>Accounts Summary:</label>
-            <a class="type-badge" onclick="filterByAccountType('ALL')">ALL: <span id="countALL">0</span></a>
-            <a class="type-badge" onclick="filterByAccountType('RD')">RD: <span id="countRD">0</span></a>
-            <a class="type-badge" onclick="filterByAccountType('TD')">TD: <span id="countTD">0</span></a>
-            <a class="type-badge" onclick="filterByAccountType('SA')">SA: <span id="countSA">0</span></a>
-            <a class="type-badge" onclick="filterByAccountType('MIS')">MIS: <span id="countMIS">0</span></a>
-            <a class="type-badge" onclick="filterByAccountType('KVP')">KVP: <span id="countKVP">0</span></a>
-            <a class="type-badge" onclick="filterByAccountType('NSC')">NSC: <span id="countNSC">0</span></a>
-        </div>
-        <div class="data-management-tools">
-            <button class="btn btn-backup" onclick="exportBackupData()">Backup Data</button>
-            <button class="btn btn-restore" onclick="triggerRestoreUpload()">Restore Data</button>
-            <input type="file" id="restoreFileInput" accept=".json" style="display: none;" onchange="importRestoreData(event)">
-        </div>
-    </div>
+    <div class="container no-print">
 
-    <div class="container">
-
-        <!-- Live Search Box Section -->
-        <div class="card">
-            <div class="card-header-flex">
-                <h2>Quick Search Customer Details</h2>
-            </div>
-            <div class="search-container">
-                <div class="search-input-wrapper">
-                    <input type="text" id="custSearchInput" placeholder="Type Name, Account No, Mobile No, CIF, or PAN to search..." onkeyup="searchCustomersLive()">
-                </div>
-                <!-- Flashing Live Dropdown List -->
-                <div id="searchResultsFlash" class="search-results-flash"></div>
-            </div>
+        <!-- LIVE SEARCH BAR -->
+        <div class="search-container">
+            <input type="text" id="custSearchInput" class="search-input" placeholder="Search Customer by Name, Account No, CIF, Mobile, PAN..." onkeyup="searchCustomersLive()">
+            <div id="searchResultsFlash" class="search-results-flash"></div>
         </div>
 
-        <!-- Customer Registration Form -->
-        <div class="card" id="clientFormSection">
-            <div class="card-header-flex">
-                <h2>Customer Registration Form</h2>
+        <!-- DASHBOARD METRICS -->
+        <div class="dashboard-grid">
+            <div class="dash-card" onclick="filterByAccountType('ALL')">
+                <h4>Total Accounts</h4>
+                <div class="count" id="countALL">0</div>
             </div>
-            <form id="clientForm">
-                <input type="hidden" id="clientIndex">
+            <div class="dash-card" onclick="filterByAccountType('RD')">
+                <h4>RD</h4>
+                <div class="count" id="countRD">0</div>
+            </div>
+            <div class="dash-card" onclick="filterByAccountType('TD')">
+                <h4>TD</h4>
+                <div class="count" id="countTD">0</div>
+            </div>
+            <div class="dash-card" onclick="filterByAccountType('SA')">
+                <h4>SA</h4>
+                <div class="count" id="countSA">0</div>
+            </div>
+            <div class="dash-card" onclick="filterByAccountType('MIS')">
+                <h4>MIS</h4>
+                <div class="count" id="countMIS">0</div>
+            </div>
+            <div class="dash-card" onclick="filterByAccountType('KVP')">
+                <h4>KVP</h4>
+                <div class="count" id="countKVP">0</div>
+            </div>
+            <div class="dash-card" onclick="filterByAccountType('NSC')">
+                <h4>NSC</h4>
+                <div class="count" id="countNSC">0</div>
+            </div>
+        </div>
+
+        <!-- CLIENT REGISTRATION FORM -->
+        <div class="card-section" id="clientFormSection">
+            <div class="section-header">
+                <span>Customer Account Registration</span>
+            </div>
+            <form id="clientForm" onsubmit="event.preventDefault();">
+                <input type="hidden" id="clientIndex" value="">
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="accountType">Account Type</label>
-                        <select id="accountType" onchange="toggleAmountLabel()" required>
-                            <option value="RD">RD</option>
-                            <option value="TD">TD</option>
-                            <option value="SA">SA</option>
-                            <option value="MIS">MIS</option>
-                            <option value="KVP">KVP</option>
-                            <option value="NSC">NSC</option>
+                        <label>Account Type</label>
+                        <select id="accountType" onchange="toggleAmountLabel()">
+                            <option value="RD">RD (Recurring Deposit)</option>
+                            <option value="TD">TD (Time Deposit)</option>
+                            <option value="SA">SA (Savings Account)</option>
+                            <option value="MIS">MIS (Monthly Income Scheme)</option>
+                            <option value="KVP">KVP (Kisan Vikas Patra)</option>
+                            <option value="NSC">NSC (National Savings Cert.)</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="clientAmount" id="amountLabel">Monthly Denomination</label>
-                        <input type="number" id="clientAmount" step="0.01" required>
+                        <label id="amountLabel">Monthly Denomination</label>
+                        <input type="number" id="clientAmount" step="0.01" placeholder="e.g. 1000">
                     </div>
                     <div class="form-group">
-                        <label for="years">Years</label>
-                        <select id="years" required>
+                        <label>Tenure (Years)</label>
+                        <select id="years">
                             <option value="1 Year">1 Year</option>
-                            <option value="2 Year">2 Year</option>
-                            <option value="3 Year">3 Year</option>
-                            <option value="5 Year">5 Year</option>
-                            <option value="9 Year 7 Months">9 Year 7 Months</option>
-                            <option value="Others">Others</option>
+                            <option value="2 Years">2 Years</option>
+                            <option value="3 Years">3 Years</option>
+                            <option value="5 Years" selected>5 Years</option>
+                            <option value="10 Years">10 Years</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="clientDate">Date</label>
-                        <input type="date" id="clientDate" required>
+                        <label>Date of Opening</label>
+                        <input type="date" id="clientDate">
                     </div>
                     <div class="form-group">
-                        <label for="cifNo">CIF No</label>
-                        <input type="text" id="cifNo" required>
+                        <label>CIF No</label>
+                        <input type="text" id="cifNo" placeholder="CIF Number">
                     </div>
                     <div class="form-group">
-                        <label for="aslaasNo">ASLAAS No</label>
-                        <input type="text" id="aslaasNo" required>
+                        <label>ASLAAS No</label>
+                        <input type="text" id="aslaasNo" placeholder="ASLAAS Number">
                     </div>
                     <div class="form-group">
-                        <label for="accountNo">Account No</label>
-                        <input type="text" id="accountNo" required>
+                        <label>Account No</label>
+                        <input type="text" id="accountNo" placeholder="Account Number">
                     </div>
                     <div class="form-group">
-                        <label for="customerName">Customer Name</label>
-                        <input type="text" id="customerName" required>
+                        <label>Customer Name</label>
+                        <input type="text" id="customerName" placeholder="Full Name">
                     </div>
                     <div class="form-group">
-                        <label for="guardianName">Father/Husband Name</label>
-                        <input type="text" id="guardianName" required>
+                        <label>Father / Husband Name</label>
+                        <input type="text" id="guardianName" placeholder="Guardian Name">
                     </div>
                     <div class="form-group">
-                        <label for="dob">DOB</label>
-                        <input type="date" id="dob" required>
+                        <label>Date of Birth</label>
+                        <input type="date" id="dob">
                     </div>
                     <div class="form-group">
-                        <label for="mobileNo">Mobile No</label>
-                        <input type="tel" id="mobileNo" required>
+                        <label>Mobile No</label>
+                        <input type="text" id="mobileNo" placeholder="10-digit mobile">
                     </div>
                     <div class="form-group">
-                        <label for="aadhaarCard">Aadhaar Card</label>
-                        <input type="text" id="aadhaarCard" maxlength="12" placeholder="12 Digit Aadhaar" required>
+                        <label>Aadhaar Card</label>
+                        <input type="text" id="aadhaarCard" placeholder="Aadhaar Number">
                     </div>
                     <div class="form-group">
-                        <label for="panCard">PAN Card</label>
-                        <input type="text" id="panCard" placeholder="ABCDE1234F" required>
+                        <label>PAN Card</label>
+                        <input type="text" id="panCard" placeholder="PAN Number">
                     </div>
-                    <div class="form-group full-width">
-                        <label for="address">Address</label>
-                        <input type="text" id="address" required>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label>Address</label>
+                        <input type="text" id="address" placeholder="Full Address">
                     </div>
                 </div>
 
-                <div class="button-group">
-                    <button type="button" class="btn btn-save" onclick="saveClient()">Save</button>
-                    <button type="button" class="btn btn-clear" onclick="clearClientForm()">Clear</button>
-                    <button type="button" class="btn btn-delete" onclick="deleteClient()">Delete</button>
-                    <button type="button" class="btn btn-print" onclick="printCustomerSummary()">Print Summary</button>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary" onclick="saveClient()">Save Customer</button>
+                    <button type="button" class="btn btn-secondary" onclick="clearClientForm()">Clear Form</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteClient()">Delete Selected</button>
+                    <button type="button" class="btn btn-success" onclick="printCustomerSummary()">Print Registration Form</button>
                 </div>
             </form>
         </div>
 
-        <!-- Accounts Opened List -->
-        <div class="card" id="accountsListSection">
-            <div class="card-header-flex">
-                <h2>Opened Accounts List <span id="currentFilterTitle" style="font-size: 0.9rem; color: #6b7280; font-weight: normal;">(Showing All)</span></h2>
-                <button class="btn btn-clear" style="font-size: 0.8rem; padding: 4px 10px;" onclick="filterByAccountType('ALL')">Reset View</button>
+        <!-- ACCOUNTS LIST TABLE -->
+        <div class="card-section" id="accountsListSection">
+            <div class="section-header">
+                <span>Registered Customer Accounts <small id="currentFilterTitle" style="font-size:0.85rem; color:#6b7280;"></small></span>
             </div>
             <div class="table-responsive">
                 <table>
@@ -724,86 +618,77 @@
                             <th>Tenure</th>
                             <th>Date</th>
                             <th>Mobile</th>
-                            <th>Action</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="clientTableBody">
-                        <!-- Dynamic Rows -->
-                    </tbody>
+                    <tbody id="clientTableBody"></tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Bulk RD Posting Monthly Form -->
-        <div class="card" id="bulkRdSection">
-            <div class="card-header-flex">
-                <h2>Bulk RD Posting Monthly Form</h2>
+        <!-- BULK RD POSTING FORM -->
+        <div class="card-section" id="bulkRdSection">
+            <div class="section-header">
+                <span>Bulk RD Posting</span>
             </div>
-            <form id="bulkRdForm">
-                <input type="hidden" id="rdIndex">
+
+            <label style="font-size:0.85rem; font-weight:600; color:#374151; display:block; margin-bottom:5px;">Select Active RD Accounts to Include:</label>
+            <div id="rdAccountSelectionList" class="rd-selection-box"></div>
+
+            <form id="bulkRdForm" onsubmit="event.preventDefault();">
+                <input type="hidden" id="rdIndex" value="">
                 <div class="form-grid">
-                    <div class="form-group full-width">
-                        <label>Select RD Account (Account No, Customer Name, Monthly Denomination)</label>
-                        <div class="rd-selection-box" id="rdAccountSelectionList">
-                            <!-- Dynamic RD Accounts Radio Buttons -->
-                        </div>
+                    <div class="form-group">
+                        <label>Posting Date</label>
+                        <input type="date" id="rdDate">
                     </div>
                     <div class="form-group">
-                        <label for="rdDate">Date</label>
-                        <input type="date" id="rdDate" required>
+                        <label>Reference No</label>
+                        <input type="text" id="refNo" placeholder="Reference No">
                     </div>
                     <div class="form-group">
-                        <label for="refNo">Reference No</label>
-                        <input type="text" id="refNo" required>
+                        <label>Calculated Total Amount</label>
+                        <input type="number" id="rdAmount" step="0.01" oninput="calculateBulkDeductions()">
                     </div>
                     <div class="form-group">
-                        <label for="rdAmount">Amount</label>
-                        <input type="number" id="rdAmount" step="0.01" oninput="calculateBulkDeductions()" required>
+                        <label>Default Fee (DF)</label>
+                        <input type="number" id="df" step="0.01" value="0.00">
                     </div>
                     <div class="form-group">
-                        <label for="df">DF</label>
-                        <input type="text" id="df" required>
+                        <label>TDS (0.08%)</label>
+                        <input type="number" id="tds" step="0.01" readonly>
                     </div>
                     <div class="form-group">
-                        <label for="tds">TDS (0.08%)</label>
-                        <input type="number" id="tds" step="0.01" readonly style="background-color: #f3f4f6;" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="commission">Commission (3.92%)</label>
-                        <input type="number" id="commission" step="0.01" readonly style="background-color: #f3f4f6;" required>
+                        <label>Commission (3.92%)</label>
+                        <input type="number" id="commission" step="0.01" readonly>
                     </div>
                 </div>
 
-                <div class="button-group">
-                    <button type="button" class="btn btn-save" onclick="saveBulkRD()">Save</button>
-                    <button type="button" class="btn btn-clear" onclick="clearBulkRDForm()">Clear</button>
-                    <button type="button" class="btn btn-delete" onclick="deleteBulkRD()">Delete Active Selection</button>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary" onclick="saveBulkRD()">Submit RD Posting</button>
+                    <button type="button" class="btn btn-secondary" onclick="clearBulkRDForm()">Clear Form</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteBulkRD()">Delete Selected</button>
                 </div>
             </form>
         </div>
 
-        <!-- Bulk RD Posting List & Search Between Dates -->
-        <div class="card" id="bulkRdRecordsSection">
-            <div class="card-header-flex">
-                <h2>Submitted Bulk RD Postings</h2>
-                <div style="display: flex; gap: 8px;">
-                    <button class="btn btn-print" style="font-size: 0.8rem; padding: 4px 10px;" onclick="printBulkRDRecords()">Print Filtered List</button>
-                    <button class="btn btn-clear" style="font-size: 0.8rem; padding: 4px 10px;" onclick="resetRdDateFilter()">Reset Filter</button>
-                </div>
+        <!-- SUBMITTED BULK RD RECORDS -->
+        <div class="card-section">
+            <div class="section-header">
+                <span>Submitted Bulk RD Postings</span>
+                <button class="btn btn-success" style="padding: 4px 10px; font-size: 0.85rem;" onclick="printBulkRDRecords()">Print RD Summary</button>
             </div>
 
-            <div class="form-grid filter-group" style="align-items: flex-end; margin-bottom: 15px;">
-                <div class="form-group">
-                    <label for="rdFromDate">From Date</label>
-                    <input type="date" id="rdFromDate">
+            <div style="display:flex; gap:15px; margin-bottom:15px; align-items:center;">
+                <div class="form-group" style="flex:1;">
+                    <label>From Date</label>
+                    <input type="date" id="rdFromDate" onchange="renderRdList()">
                 </div>
-                <div class="form-group">
-                    <label for="rdToDate">To Date</label>
-                    <input type="date" id="rdToDate">
+                <div class="form-group" style="flex:1;">
+                    <label>To Date</label>
+                    <input type="date" id="rdToDate" onchange="renderRdList()">
                 </div>
-                <div class="form-group">
-                    <button type="button" class="btn btn-filter" onclick="renderRdList()">Search Between Dates</button>
-                </div>
+                <button class="btn btn-secondary" style="margin-top:20px;" onclick="resetRdDateFilter()">Reset Filter</button>
             </div>
 
             <div class="table-responsive">
@@ -811,87 +696,83 @@
                     <thead>
                         <tr>
                             <th>Date</th>
-                            <th>Reference No</th>
+                            <th>Ref No</th>
                             <th>Amount</th>
                             <th>DF</th>
                             <th>TDS</th>
                             <th>Commission</th>
-                            <th>Action</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="rdTableBody">
-                        <!-- Dynamic Bulk RD Rows -->
-                    </tbody>
+                    <tbody id="rdTableBody"></tbody>
                     <tfoot>
-                        <tr class="total-row">
-                            <td colspan="2">Filtered Total</td>
+                        <tr style="font-weight: bold; background-color: #f8fafc;">
+                            <td colspan="2">Total</td>
                             <td id="rdTotalAmount">₹0.00</td>
                             <td id="rdTotalDF">₹0.00</td>
                             <td id="rdTotalTDS">₹0.00</td>
                             <td id="rdTotalCommission">₹0.00</td>
-                            <td>-</td>
+                            <td></td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
         </div>
 
-        <!-- Reporting System -->
-        <div class="card" id="reportingCard">
-            <div class="card-header-flex">
-                <h2>Reporting System</h2>
+        <!-- REPORTS & FINANCIAL SUMMARY -->
+        <div class="card-section">
+            <div class="section-header">
+                <span>Financial Reporting & Analytics</span>
+                <button class="btn btn-success" style="padding: 4px 10px; font-size: 0.85rem;" onclick="printReportSummary()">Print Full Report</button>
             </div>
-            <div class="form-grid filter-group" style="align-items: flex-end;">
-                <div class="form-group">
-                    <label for="fromDate">From Date</label>
-                    <input type="date" id="fromDate">
+
+            <div style="display:flex; gap:15px; margin-bottom:15px;">
+                <div class="form-group" style="flex:1;">
+                    <label>Report From Date</label>
+                    <input type="date" id="fromDate" onchange="generateReport()">
                 </div>
-                <div class="form-group">
-                    <label for="toDate">To Date</label>
-                    <input type="date" id="toDate">
-                </div>
-                <div class="form-group" style="flex-direction: row; gap: 10px;">
-                    <button type="button" class="btn btn-filter" onclick="generateReport()">Generate Report</button>
-                    <button type="button" class="btn btn-print" onclick="printReportSummary()">Print Report</button>
+                <div class="form-group" style="flex:1;">
+                    <label>Report To Date</label>
+                    <input type="date" id="toDate" onchange="generateReport()">
                 </div>
             </div>
 
-            <div class="table-responsive" style="margin-top: 20px;">
+            <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
                             <th>Category</th>
-                            <th>Total Entries</th>
-                            <th>Total Amount</th>
+                            <th>Total Count</th>
+                            <th>Total Amount (₹)</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>Account Opening Amount</td>
+                            <td>Account Opening Sum</td>
                             <td id="repAccCount">0</td>
                             <td id="repAccSum">0.00</td>
                         </tr>
                         <tr>
-                            <td>Bulk RD Posting Amount</td>
+                            <td>Bulk RD Posting Sum</td>
                             <td id="repRdCount">0</td>
                             <td id="repRdSum">0.00</td>
                         </tr>
                         <tr>
-                            <td>Total DF</td>
+                            <td>Default Fee (DF) Total</td>
                             <td id="repDfCount">0</td>
                             <td id="repDfSum">0.00</td>
                         </tr>
                         <tr>
-                            <td>Total TDS</td>
+                            <td>TDS Total</td>
                             <td id="repTdsCount">0</td>
                             <td id="repTdsSum">0.00</td>
                         </tr>
                         <tr>
-                            <td>Total Commission</td>
+                            <td>Commission Total</td>
                             <td id="repCommCount">0</td>
                             <td id="repCommSum">0.00</td>
                         </tr>
-                        <tr class="total-row">
+                        <tr style="font-weight:bold; background-color:#f8fafc;">
                             <td>Grand Total</td>
                             <td id="repTotalCount">0</td>
                             <td id="repGrandTotal">0.00</td>
@@ -901,219 +782,102 @@
             </div>
         </div>
 
+        <!-- DATA BACKUP & RESTORE -->
+        <div class="card-section">
+            <div class="section-header">
+                <span>Database Backup & Restore</span>
+            </div>
+            <div style="display:flex; gap:15px;">
+                <button class="btn btn-primary" onclick="exportBackupData()">Export JSON Backup</button>
+                <button class="btn btn-secondary" onclick="triggerRestoreUpload()">Import JSON Restore</button>
+                <input type="file" id="restoreFileInput" style="display:none;" accept=".json" onchange="importRestoreData(event)">
+            </div>
+        </div>
+
     </div>
 
-    <!-- Customer Details Modal -->
+    <!-- CUSTOMER DETAILS MODAL -->
     <div id="customerModal" class="modal-overlay">
-        <div class="modal-card">
+        <div class="modal-content">
             <div class="modal-header">
-                <h3>Customer Summary Details</h3>
-                <button class="modal-close" onclick="closeCustomerModal()">&times;</button>
+                <h3>Customer Detailed Record</h3>
+                <button style="border:none; background:none; font-size:1.2rem; cursor:pointer;" onclick="closeCustomerModal()">✕</button>
             </div>
-            <div class="modal-body">
-                <div class="modal-grid" id="modalCustomerDetails">
-                    <!-- Dynamic Modal Content -->
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-action-edit" style="font-size: 0.85rem; padding: 6px 14px;" id="modalEditBtn">Edit Entry</button>
-                <button class="btn btn-print" style="font-size: 0.85rem; padding: 6px 14px;" id="modalPrintBtn">Print Summary</button>
-                <button class="btn btn-clear" style="font-size: 0.85rem; padding: 6px 14px;" onclick="closeCustomerModal()">Close</button>
+            <div id="modalCustomerDetails" class="modal-body-grid"></div>
+            <div class="btn-group" style="margin-top:20px;">
+                <button class="btn btn-primary" id="modalEditBtn">Edit Record</button>
+                <button class="btn btn-success" id="modalPrintBtn">Print Summary</button>
+                <button class="btn btn-secondary" onclick="closeCustomerModal()">Close</button>
             </div>
         </div>
     </div>
 
-    <!-- Hidden Print Area -->
-    <div id="printArea" class="printable-area"></div>
+    <!-- HIDDEN PRINT AREA -->
+    <div id="printArea"></div>
 
-    <script>
-        let clients = [];
-        let rdPostings = [];
-        let activeFilter = 'ALL';
+    <!-- FIREBASE MODULE SCRIPT -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        window.onload = function() {
-            const storedClients = localStorage.getItem('postOffice_clients');
-            const storedRD = localStorage.getItem('postOffice_rdPostings');
-            if (storedClients) clients = JSON.parse(storedClients);
-            if (storedRD) rdPostings = JSON.parse(storedRD);
-            updateUI();
-
-            // Close search results when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.search-container')) {
-                    document.getElementById('searchResultsFlash').style.display = 'none';
-                }
-            });
+        // Your Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNAkdz6wPmyhliidJMtNW1rRJ3ibK-5Tc",
+            authDomain: "localstorage-71f48.firebaseapp.com",
+            projectId: "localstorage-71f48",
+            storageBucket: "localstorage-71f48.firebasestorage.app",
+            messagingSenderId: "721485382460",
+            appId: "1:721485382460:web:3eefa39343e815a7519439",
+            measurementId: "G-0FCV6BT5ZZ"
         };
 
-        function persistData() {
-            localStorage.setItem('postOffice_clients', JSON.stringify(clients));
-            localStorage.setItem('postOffice_rdPostings', JSON.stringify(rdPostings));
-        }
+        // Initialize Firebase Services
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-        function authenticateUser() {
-            const enteredId = document.getElementById('loginId').value.trim();
-            const enteredPass = document.getElementById('loginPass').value.trim();
-            const errorElement = document.getElementById('loginError');
+        // Global state arrays storing records with their unique Firebase keys
+        window.clients = [];
+        window.rdPostings = [];
+        window.activeFilter = 'ALL';
 
-            if (enteredId === "MI2745020101403" && enteredPass === "2745020101349") {
-                document.getElementById('loginOverlay').style.display = 'none';
-                errorElement.style.display = 'none';
-                document.getElementById('loginPass').value = "";
-            } else {
-                errorElement.style.display = 'block';
-            }
-        }
+        // Global references to Firebase nodes
+        const clientsRef = ref(db, 'clients');
+        const rdRef = ref(db, 'rdPostings');
 
-        function logoutUser() {
-            document.getElementById('loginOverlay').style.display = 'flex';
-        }
-
-        /* Automatic Calculation for TDS and Commission */
-        function calculateBulkDeductions() {
-            const amountInput = document.getElementById('rdAmount').value;
-            const amount = parseFloat(amountInput) || 0;
-
-            const tds = amount * 0.0008; // 0.08%
-            const commission = amount * 0.0392; // 3.92%
-
-            document.getElementById('tds').value = tds ? tds.toFixed(2) : "";
-            document.getElementById('commission').value = commission ? commission.toFixed(2) : "";
-        }
-
-        /* Live Customer Search & Modal Popup System */
-        function searchCustomersLive() {
-            const query = document.getElementById('custSearchInput').value.trim().toLowerCase();
-            const flashContainer = document.getElementById('searchResultsFlash');
-
-            if (query === "") {
-                flashContainer.style.display = 'none';
-                flashContainer.innerHTML = "";
-                return;
-            }
-
-            const matches = clients.filter((c, index) => {
-                c.originalIndex = index;
-                return (
-                    (c.customerName && c.customerName.toLowerCase().includes(query)) ||
-                    (c.accountNo && c.accountNo.toLowerCase().includes(query)) ||
-                    (c.mobileNo && c.mobileNo.toLowerCase().includes(query)) ||
-                    (c.cifNo && c.cifNo.toLowerCase().includes(query)) ||
-                    (c.panCard && c.panCard.toLowerCase().includes(query))
-                );
-            });
-
-            if (matches.length === 0) {
-                flashContainer.innerHTML = `<div class="flash-item" style="cursor:default;"><span class="cust-sub">No customer records found matching "${query}"</span></div>`;
-            } else {
-                let html = "";
-                matches.forEach(c => {
-                    html += `
-                        <div class="flash-item" onclick="openCustomerModal(${c.originalIndex})">
-                            <div>
-                                <div class="cust-info">${c.customerName}</div>
-                                <div class="cust-sub">Acc: ${c.accountNo} | CIF: ${c.cifNo} | Mob: ${c.mobileNo || 'N/A'}</div>
-                            </div>
-                            <span class="cust-acc">${c.accountType} - ₹${c.amount.toFixed(2)}</span>
-                        </div>
-                    `;
+        // Realtime listener for Customer Accounts
+        onValue(clientsRef, (snapshot) => {
+            const data = snapshot.val();
+            window.clients = [];
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    window.clients.push({ id: key, ...data[key] });
                 });
-                flashContainer.innerHTML = html;
             }
+            updateUI();
+        });
 
-            flashContainer.style.display = 'block';
-        }
+        // Realtime listener for Bulk RD Postings
+        onValue(rdRef, (snapshot) => {
+            const data = snapshot.val();
+            window.rdPostings = [];
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    window.rdPostings.push({ id: key, ...data[key] });
+                });
+            }
+            updateUI();
+        });
 
-        function openCustomerModal(index) {
-            const c = clients[index];
-            if (!c) return;
+        // Close search results when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.search-container')) {
+                document.getElementById('searchResultsFlash').style.display = 'none';
+            }
+        });
 
-            document.getElementById('searchResultsFlash').style.display = 'none';
-
-            const detailsGrid = document.getElementById('modalCustomerDetails');
-            detailsGrid.innerHTML = `
-                <div class="modal-field">
-                    <label>Account Type</label>
-                    <span>${c.accountType}</span>
-                </div>
-                <div class="modal-field">
-                    <label>Amount / Denomination</label>
-                    <span>₹${c.amount.toFixed(2)}</span>
-                </div>
-                <div class="modal-field">
-                    <label>Account No</label>
-                    <span>${c.accountNo}</span>
-                </div>
-                <div class="modal-field">
-                    <label>Customer Name</label>
-                    <span>${c.customerName}</span>
-                </div>
-                <div class="modal-field">
-                    <label>Father / Husband Name</label>
-                    <span>${c.guardianName || '-'}</span>
-                </div>
-                <div class="modal-field">
-                    <label>CIF No</label>
-                    <span>${c.cifNo || '-'}</span>
-                </div>
-                <div class="modal-field">
-                    <label>ASLAAS No</label>
-                    <span>${c.aslaasNo || '-'}</span>
-                </div>
-                <div class="modal-field">
-                    <label>Date of Opening</label>
-                    <span>${c.date}</span>
-                </div>
-                <div class="modal-field">
-                    <label>Tenure</label>
-                    <span>${c.years}</span>
-                </div>
-                <div class="modal-field">
-                    <label>Date of Birth</label>
-                    <span>${c.dob || '-'}</span>
-                </div>
-                <div class="modal-field">
-                    <label>Mobile No</label>
-                    <span>${c.mobileNo || '-'}</span>
-                </div>
-                <div class="modal-field">
-                    <label>Aadhaar Card</label>
-                    <span>${c.aadhaarCard || '-'}</span>
-                </div>
-                <div class="modal-field">
-                    <label>PAN Card</label>
-                    <span>${c.panCard || '-'}</span>
-                </div>
-                <div class="modal-field full">
-                    <label>Address</label>
-                    <span>${c.address || '-'}</span>
-                </div>
-            `;
-
-            document.getElementById('modalEditBtn').onclick = function() {
-                closeCustomerModal();
-                loadClientToForm(index);
-            };
-
-            document.getElementById('modalPrintBtn').onclick = function() {
-                printSingleCustomer(index);
-            };
-
-            document.getElementById('customerModal').style.display = 'flex';
-        }
-
-        function closeCustomerModal() {
-            document.getElementById('customerModal').style.display = 'none';
-        }
-
-        function toggleAmountLabel() {
-            const accType = document.getElementById('accountType').value;
-            const label = document.getElementById('amountLabel');
-            label.innerText = accType === 'RD' ? "Monthly Denomination" : "Amount";
-        }
-
-        function saveClient() {
-            const index = document.getElementById('clientIndex').value;
+        // Save Customer Account to Firebase
+        window.saveClient = function() {
+            const key = document.getElementById('clientIndex').value;
             const data = {
                 accountType: document.getElementById('accountType').value,
                 amount: parseFloat(document.getElementById('clientAmount').value) || 0,
@@ -1136,27 +900,204 @@
                 return;
             }
 
-            if (index === "") {
-                clients.push(data);
+            if (key === "") {
+                const newRef = push(clientsRef);
+                set(newRef, data);
             } else {
-                clients[index] = data;
+                set(ref(db, `clients/${key}`), data);
                 document.getElementById('clientIndex').value = "";
             }
 
-            persistData();
             clearClientForm();
-            updateUI();
-        }
+        };
 
-        function clearClientForm() {
+        // Delete Customer Account from Firebase
+        window.deleteClientDirect = function(key) {
+            if (confirm("Are you sure you want to delete this customer account?")) {
+                remove(ref(db, `clients/${key}`));
+                clearClientForm();
+            }
+        };
+
+        window.deleteClient = function() {
+            const key = document.getElementById('clientIndex').value;
+            if (key !== "") {
+                window.deleteClientDirect(key);
+            } else {
+                alert("Select an account from the table below to delete.");
+            }
+        };
+
+        // Save Bulk RD Posting to Firebase
+        window.saveBulkRD = function() {
+            const key = document.getElementById('rdIndex').value;
+            const data = {
+                date: document.getElementById('rdDate').value,
+                refNo: document.getElementById('refNo').value,
+                amount: parseFloat(document.getElementById('rdAmount').value) || 0,
+                df: parseFloat(document.getElementById('df').value) || 0,
+                tds: parseFloat(document.getElementById('tds').value) || 0,
+                commission: parseFloat(document.getElementById('commission').value) || 0
+            };
+
+            if (!data.date || !data.refNo) {
+                alert("Please fill in Date and Reference No.");
+                return;
+            }
+
+            if (key === "") {
+                const newRef = push(rdRef);
+                set(newRef, data);
+            } else {
+                set(ref(db, `rdPostings/${key}`), data);
+                document.getElementById('rdIndex').value = "";
+            }
+
+            clearBulkRDForm();
+        };
+
+        // Delete Bulk RD Record from Firebase
+        window.deleteRdDirect = function(key) {
+            if (confirm("Are you sure you want to delete this RD Posting record?")) {
+                remove(ref(db, `rdPostings/${key}`));
+                clearBulkRDForm();
+            }
+        };
+
+        window.deleteBulkRD = function() {
+            const key = document.getElementById('rdIndex').value;
+            if (key !== "") {
+                window.deleteRdDirect(key);
+            } else {
+                alert("Select an RD entry from the table to delete.");
+            }
+        };
+
+        // UI Helper Functions
+        window.authenticateUser = function() {
+            const enteredId = document.getElementById('loginId').value.trim();
+            const enteredPass = document.getElementById('loginPass').value.trim();
+            const errorElement = document.getElementById('loginError');
+
+            if (enteredId === "MI2745020101403" && enteredPass === "2745020101349") {
+                document.getElementById('loginOverlay').style.display = 'none';
+                errorElement.style.display = 'none';
+                document.getElementById('loginPass').value = "";
+            } else {
+                errorElement.style.display = 'block';
+            }
+        };
+
+        window.logoutUser = function() {
+            document.getElementById('loginOverlay').style.display = 'flex';
+        };
+
+        window.calculateBulkDeductions = function() {
+            const amountInput = document.getElementById('rdAmount').value;
+            const amount = parseFloat(amountInput) || 0;
+            const tds = amount * 0.0008;
+            const commission = amount * 0.0392;
+
+            document.getElementById('tds').value = tds ? tds.toFixed(2) : "";
+            document.getElementById('commission').value = commission ? commission.toFixed(2) : "";
+        };
+
+        window.searchCustomersLive = function() {
+            const query = document.getElementById('custSearchInput').value.trim().toLowerCase();
+            const flashContainer = document.getElementById('searchResultsFlash');
+
+            if (query === "") {
+                flashContainer.style.display = 'none';
+                flashContainer.innerHTML = "";
+                return;
+            }
+
+            const matches = window.clients.filter(c => 
+                (c.customerName && c.customerName.toLowerCase().includes(query)) ||
+                (c.accountNo && c.accountNo.toLowerCase().includes(query)) ||
+                (c.mobileNo && c.mobileNo.toLowerCase().includes(query)) ||
+                (c.cifNo && c.cifNo.toLowerCase().includes(query)) ||
+                (c.panCard && c.panCard.toLowerCase().includes(query))
+            );
+
+            if (matches.length === 0) {
+                flashContainer.innerHTML = `<div class="flash-item" style="cursor:default;"><span class="cust-sub">No customer records found matching "${query}"</span></div>`;
+            } else {
+                let html = "";
+                matches.forEach(c => {
+                    html += `
+                        <div class="flash-item" onclick="openCustomerModal('${c.id}')">
+                            <div>
+                                <div class="cust-info">${c.customerName}</div>
+                                <div class="cust-sub">Acc: ${c.accountNo} | CIF: ${c.cifNo} | Mob: ${c.mobileNo || 'N/A'}</div>
+                            </div>
+                            <span class="cust-acc">${c.accountType} - ₹${c.amount.toFixed(2)}</span>
+                        </div>
+                    `;
+                });
+                flashContainer.innerHTML = html;
+            }
+
+            flashContainer.style.display = 'block';
+        };
+
+        window.openCustomerModal = function(key) {
+            const c = window.clients.find(item => item.id === key);
+            if (!c) return;
+
+            document.getElementById('searchResultsFlash').style.display = 'none';
+
+            const detailsGrid = document.getElementById('modalCustomerDetails');
+            detailsGrid.innerHTML = `
+                <div class="modal-field"><label>Account Type</label><span>${c.accountType}</span></div>
+                <div class="modal-field"><label>Amount / Denomination</label><span>₹${c.amount.toFixed(2)}</span></div>
+                <div class="modal-field"><label>Account No</label><span>${c.accountNo}</span></div>
+                <div class="modal-field"><label>Customer Name</label><span>${c.customerName}</span></div>
+                <div class="modal-field"><label>Father / Husband Name</label><span>${c.guardianName || '-'}</span></div>
+                <div class="modal-field"><label>CIF No</label><span>${c.cifNo || '-'}</span></div>
+                <div class="modal-field"><label>ASLAAS No</label><span>${c.aslaasNo || '-'}</span></div>
+                <div class="modal-field"><label>Date of Opening</label><span>${c.date}</span></div>
+                <div class="modal-field"><label>Tenure</label><span>${c.years}</span></div>
+                <div class="modal-field"><label>Date of Birth</label><span>${c.dob || '-'}</span></div>
+                <div class="modal-field"><label>Mobile No</label><span>${c.mobileNo || '-'}</span></div>
+                <div class="modal-field"><label>Aadhaar Card</label><span>${c.aadhaarCard || '-'}</span></div>
+                <div class="modal-field"><label>PAN Card</label><span>${c.panCard || '-'}</span></div>
+                <div class="modal-field full"><label>Address</label><span>${c.address || '-'}</span></div>
+            `;
+
+            document.getElementById('modalEditBtn').onclick = function() {
+                closeCustomerModal();
+                loadClientToForm(key);
+            };
+
+            document.getElementById('modalPrintBtn').onclick = function() {
+                printSingleCustomer(key);
+            };
+
+            document.getElementById('customerModal').style.display = 'flex';
+        };
+
+        window.closeCustomerModal = function() {
+            document.getElementById('customerModal').style.display = 'none';
+        };
+
+        window.toggleAmountLabel = function() {
+            const accType = document.getElementById('accountType').value;
+            const label = document.getElementById('amountLabel');
+            label.innerText = accType === 'RD' ? "Monthly Denomination" : "Amount";
+        };
+
+        window.clearClientForm = function() {
             document.getElementById('clientForm').reset();
             document.getElementById('clientIndex').value = "";
             toggleAmountLabel();
-        }
+        };
 
-        function loadClientToForm(idx) {
-            const c = clients[idx];
-            document.getElementById('clientIndex').value = idx;
+        window.loadClientToForm = function(key) {
+            const c = window.clients.find(item => item.id === key);
+            if (!c) return;
+
+            document.getElementById('clientIndex').value = key;
             document.getElementById('accountType').value = c.accountType;
             toggleAmountLabel();
             document.getElementById('clientAmount').value = c.amount;
@@ -1174,28 +1115,12 @@
             document.getElementById('address').value = c.address;
 
             document.getElementById('clientFormSection').scrollIntoView({ behavior: 'smooth' });
-        }
+        };
 
-        function deleteClientDirect(idx) {
-            if (confirm("Are you sure you want to delete this customer account?")) {
-                clients.splice(idx, 1);
-                persistData();
-                clearClientForm();
-                updateUI();
-            }
-        }
+        window.printSingleCustomer = function(key) {
+            const c = window.clients.find(item => item.id === key);
+            if (!c) return;
 
-        function deleteClient() {
-            const idx = document.getElementById('clientIndex').value;
-            if (idx !== "") {
-                deleteClientDirect(idx);
-            } else {
-                alert("Select an account from the table below to delete.");
-            }
-        }
-
-        function printSingleCustomer(idx) {
-            const c = clients[idx];
             const printContainer = document.getElementById('printArea');
             printContainer.innerHTML = `
                 <div class="print-header">
@@ -1220,21 +1145,20 @@
                 </table>
             `;
             window.print();
-        }
+        };
 
-        /* Render RD Accounts in Bulk RD Selection Container */
-        function renderRdAccountsSelection() {
+        window.renderRdAccountsSelection = function() {
             const selectionBox = document.getElementById('rdAccountSelectionList');
             selectionBox.innerHTML = "";
 
-            const rdAccounts = clients.filter(c => c.accountType === 'RD');
+            const rdAccounts = window.clients.filter(c => c.accountType === 'RD');
 
             if (rdAccounts.length === 0) {
                 selectionBox.innerHTML = "<div style='color: #6b7280; font-size: 0.85rem;'>No RD Accounts available. Register an RD account first.</div>";
                 return;
             }
 
-            rdAccounts.forEach((c, idx) => {
+            rdAccounts.forEach((c) => {
                 selectionBox.innerHTML += `
                     <label class="rd-account-item">
                         <input type="radio" name="rdAccountSelect" value="${c.amount}" onchange="updateRdAmountFromSelection(this.value)">
@@ -1242,9 +1166,9 @@
                     </label>
                 `;
             });
-        }
+        };
 
-        function updateRdAmountFromSelection(denomValue) {
+        window.updateRdAmountFromSelection = function(denomValue) {
             const selectedRadios = document.querySelectorAll('input[name="rdAccountSelect"]:checked');
             let sum = 0;
             selectedRadios.forEach(radio => {
@@ -1252,47 +1176,20 @@
             });
             document.getElementById('rdAmount').value = sum ? sum.toFixed(2) : "";
             calculateBulkDeductions();
-        }
+        };
 
-        /* Bulk RD Functions */
-        function saveBulkRD() {
-            const index = document.getElementById('rdIndex').value;
-            const data = {
-                date: document.getElementById('rdDate').value,
-                refNo: document.getElementById('refNo').value,
-                amount: parseFloat(document.getElementById('rdAmount').value) || 0,
-                df: parseFloat(document.getElementById('df').value) || 0,
-                tds: parseFloat(document.getElementById('tds').value) || 0,
-                commission: parseFloat(document.getElementById('commission').value) || 0
-            };
-
-            if (!data.date || !data.refNo) {
-                alert("Please fill in Date and Reference No.");
-                return;
-            }
-
-            if (index === "") {
-                rdPostings.push(data);
-            } else {
-                rdPostings[index] = data;
-                document.getElementById('rdIndex').value = "";
-            }
-
-            persistData();
-            clearBulkRDForm();
-            updateUI();
-        }
-
-        function clearBulkRDForm() {
+        window.clearBulkRDForm = function() {
             document.getElementById('bulkRdForm').reset();
             document.getElementById('rdIndex').value = "";
             const radios = document.querySelectorAll('input[name="rdAccountSelect"]');
             radios.forEach(r => r.checked = false);
-        }
+        };
 
-        function loadRdToForm(idx) {
-            const r = rdPostings[idx];
-            document.getElementById('rdIndex').value = idx;
+        window.loadRdToForm = function(key) {
+            const r = window.rdPostings.find(item => item.id === key);
+            if (!r) return;
+
+            document.getElementById('rdIndex').value = key;
             document.getElementById('rdDate').value = r.date;
             document.getElementById('refNo').value = r.refNo;
             document.getElementById('rdAmount').value = r.amount;
@@ -1301,45 +1198,27 @@
             document.getElementById('commission').value = r.commission;
 
             document.getElementById('bulkRdSection').scrollIntoView({ behavior: 'smooth' });
-        }
+        };
 
-        function deleteRdDirect(idx) {
-            if (confirm("Are you sure you want to delete this RD Posting record?")) {
-                rdPostings.splice(idx, 1);
-                persistData();
-                clearBulkRDForm();
-                updateUI();
-            }
-        }
-
-        function deleteBulkRD() {
-            const index = document.getElementById('rdIndex').value;
-            if (index !== "") {
-                deleteRdDirect(index);
-            } else {
-                alert("Select an RD entry from the table to delete.");
-            }
-        }
-
-        function resetRdDateFilter() {
+        window.resetRdDateFilter = function() {
             document.getElementById('rdFromDate').value = "";
             document.getElementById('rdToDate').value = "";
             renderRdList();
-        }
+        };
 
-        function getFilteredRdData() {
+        window.getFilteredRdData = function() {
             const from = document.getElementById('rdFromDate').value;
             const to = document.getElementById('rdToDate').value;
 
-            return rdPostings.filter(r => {
+            return window.rdPostings.filter(r => {
                 let valid = true;
                 if (from && r.date < from) valid = false;
                 if (to && r.date > to) valid = false;
                 return valid;
             });
-        }
+        };
 
-        function renderRdList() {
+        window.renderRdList = function() {
             const tbody = document.getElementById('rdTableBody');
             tbody.innerHTML = "";
 
@@ -1351,7 +1230,6 @@
             let totalComm = 0;
 
             filteredData.forEach((r) => {
-                const originalIndex = rdPostings.indexOf(r);
                 totalAmt += r.amount;
                 totalDf += (parseFloat(r.df) || 0);
                 totalTds += r.tds;
@@ -1367,9 +1245,9 @@
                         <td>₹${r.commission.toFixed(2)}</td>
                         <td>
                             <div class="action-buttons">
-                                <button class="btn-action-edit" onclick="loadRdToForm(${originalIndex})">Edit</button>
-                                <button class="btn-action-delete" onclick="deleteRdDirect(${originalIndex})">Delete</button>
-                                <button class="btn-action-print" onclick="printSingleRdRecord(${originalIndex})">Print</button>
+                                <button class="btn-action-edit" onclick="loadRdToForm('${r.id}')">Edit</button>
+                                <button class="btn-action-delete" onclick="deleteRdDirect('${r.id}')">Delete</button>
+                                <button class="btn-action-print" onclick="printSingleRdRecord('${r.id}')">Print</button>
                             </div>
                         </td>
                     </tr>
@@ -1380,10 +1258,12 @@
             document.getElementById('rdTotalDF').innerText = `₹${totalDf.toFixed(2)}`;
             document.getElementById('rdTotalTDS').innerText = `₹${totalTds.toFixed(2)}`;
             document.getElementById('rdTotalCommission').innerText = `₹${totalComm.toFixed(2)}`;
-        }
+        };
 
-        function printSingleRdRecord(idx) {
-            const r = rdPostings[idx];
+        window.printSingleRdRecord = function(key) {
+            const r = window.rdPostings.find(item => item.id === key);
+            if (!r) return;
+
             const printContainer = document.getElementById('printArea');
             printContainer.innerHTML = `
                 <div class="print-header">
@@ -1400,9 +1280,9 @@
                 </table>
             `;
             window.print();
-        }
+        };
 
-        function printBulkRDRecords() {
+        window.printBulkRDRecords = function() {
             const filteredData = getFilteredRdData();
             const from = document.getElementById('rdFromDate').value || 'Beginning';
             const to = document.getElementById('rdToDate').value || 'Present';
@@ -1465,23 +1345,23 @@
             `;
 
             window.print();
-        }
+        };
 
-        function filterByAccountType(type) {
-            activeFilter = type;
+        window.filterByAccountType = function(type) {
+            window.activeFilter = type;
             renderAccountsList();
             document.getElementById('accountsListSection').scrollIntoView({ behavior: 'smooth' });
-        }
+        };
 
-        function renderAccountsList() {
+        window.renderAccountsList = function() {
             const tbody = document.getElementById('clientTableBody');
             tbody.innerHTML = "";
 
             const titleElement = document.getElementById('currentFilterTitle');
-            titleElement.innerText = activeFilter === 'ALL' ? "(Showing All)" : `(Filtered by: ${activeFilter})`;
+            titleElement.innerText = window.activeFilter === 'ALL' ? "(Showing All)" : `(Filtered by: ${window.activeFilter})`;
 
-            clients.forEach((c, i) => {
-                if (activeFilter === 'ALL' || c.accountType === activeFilter) {
+            window.clients.forEach((c) => {
+                if (window.activeFilter === 'ALL' || c.accountType === window.activeFilter) {
                     tbody.innerHTML += `
                         <tr>
                             <td>${c.accountNo}</td>
@@ -1493,21 +1373,21 @@
                             <td>${c.mobileNo || '-'}</td>
                             <td>
                                 <div class="action-buttons">
-                                    <button class="btn-action-edit" onclick="loadClientToForm(${i})">Edit</button>
-                                    <button class="btn-action-delete" onclick="deleteClientDirect(${i})">Delete</button>
-                                    <button class="btn-action-print" onclick="printSingleCustomer(${i})">Print</button>
+                                    <button class="btn-action-edit" onclick="loadClientToForm('${c.id}')">Edit</button>
+                                    <button class="btn-action-delete" onclick="deleteClientDirect('${c.id}')">Delete</button>
+                                    <button class="btn-action-print" onclick="printSingleCustomer('${c.id}')">Print</button>
                                 </div>
                             </td>
                         </tr>
                     `;
                 }
             });
-        }
+        };
 
-        function updateUI() {
-            const counts = { ALL: clients.length, RD: 0, TD: 0, SA: 0, MIS: 0, KVP: 0, NSC: 0 };
+        window.updateUI = function() {
+            const counts = { ALL: window.clients.length, RD: 0, TD: 0, SA: 0, MIS: 0, KVP: 0, NSC: 0 };
 
-            clients.forEach(c => {
+            window.clients.forEach(c => {
                 if (counts[c.accountType] !== undefined) {
                     counts[c.accountType]++;
                 }
@@ -1525,14 +1405,14 @@
             renderRdAccountsSelection();
             renderRdList();
             generateReport();
-        }
+        };
 
-        function generateReport() {
+        window.generateReport = function() {
             const from = document.getElementById('fromDate').value;
             const to = document.getElementById('toDate').value;
 
-            let filteredClients = clients;
-            let filteredRd = rdPostings;
+            let filteredClients = window.clients;
+            let filteredRd = window.rdPostings;
 
             if (from) {
                 filteredClients = filteredClients.filter(c => c.date >= from);
@@ -1566,10 +1446,10 @@
 
             document.getElementById('repTotalCount').innerText = filteredClients.length + filteredRd.length;
             document.getElementById('repGrandTotal').innerText = (accSum + rdSum).toFixed(2);
-        }
+        };
 
-        function exportBackupData() {
-            if (clients.length === 0 && rdPostings.length === 0) {
+        window.exportBackupData = function() {
+            if (window.clients.length === 0 && window.rdPostings.length === 0) {
                 alert("No system data found to backup.");
                 return;
             }
@@ -1577,8 +1457,8 @@
             const dataPackage = {
                 version: "1.2",
                 backupDate: new Date().toISOString(),
-                clients: clients,
-                rdPostings: rdPostings
+                clients: window.clients,
+                rdPostings: window.rdPostings
             };
 
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataPackage, null, 2));
@@ -1588,24 +1468,22 @@
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
-        }
+        };
 
-        function triggerRestoreUpload() {
+        window.triggerRestoreUpload = function() {
             document.getElementById('restoreFileInput').click();
-        }
+        };
 
-        function importRestoreData(event) {
+        window.importRestoreData = function(event) {
             const fileReader = new FileReader();
             fileReader.onload = function(e) {
                 try {
                     const parsedData = JSON.parse(e.target.result);
                     if (parsedData.clients && parsedData.rdPostings) {
-                        if (confirm("Restoring will overwrite current active session data. Continue?")) {
-                            clients = parsedData.clients;
-                            rdPostings = parsedData.rdPostings;
-                            persistData();
-                            updateUI();
-                            alert("Data successfully restored!");
+                        if (confirm("Restoring will overwrite current database records. Continue?")) {
+                            set(clientsRef, parsedData.clients);
+                            set(rdRef, parsedData.rdPostings);
+                            alert("Data successfully restored to Cloud Realtime Database!");
                         }
                     } else {
                         alert("Invalid backup file structure.");
@@ -1617,9 +1495,9 @@
             if (event.target.files[0]) {
                 fileReader.readAsText(event.target.files[0]);
             }
-        }
+        };
 
-        function printCustomerSummary() {
+        window.printCustomerSummary = function() {
             const name = document.getElementById('customerName').value;
             const accNo = document.getElementById('accountNo').value;
 
@@ -1653,9 +1531,9 @@
             `;
 
             window.print();
-        }
+        };
 
-        function printReportSummary() {
+        window.printReportSummary = function() {
             const printContainer = document.getElementById('printArea');
             const fromDate = document.getElementById('fromDate').value || 'Beginning';
             const toDate = document.getElementById('toDate').value || 'Present';
@@ -1710,7 +1588,7 @@
             `;
 
             window.print();
-        }
+        };
     </script>
 </body>
 </html>
