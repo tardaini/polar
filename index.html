@@ -292,7 +292,6 @@
             justify-content: center;
             align-items: center;
             z-index: 2000;
-            animation: fadeIn 0.2s ease-in-out;
         }
 
         .modal-card {
@@ -404,6 +403,34 @@
         input:focus, select:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.2);
+        }
+
+        /* RD Accounts Selector Container */
+        .rd-selection-box {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 10px;
+            background-color: #f9fafb;
+        }
+
+        .rd-account-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 8px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .rd-account-item:last-child {
+            border-bottom: none;
+        }
+
+        .rd-account-item input[type="radio"] {
+            cursor: pointer;
         }
 
         /* Buttons */
@@ -715,6 +742,12 @@
             <form id="bulkRdForm">
                 <input type="hidden" id="rdIndex">
                 <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Select RD Account (Account No, Customer Name, Monthly Denomination)</label>
+                        <div class="rd-selection-box" id="rdAccountSelectionList">
+                            <!-- Dynamic RD Accounts Radio Buttons -->
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label for="rdDate">Date</label>
                         <input type="date" id="rdDate" required>
@@ -793,7 +826,7 @@
                         <tr class="total-row">
                             <td colspan="2">Filtered Total</td>
                             <td id="rdTotalAmount">₹0.00</td>
-                            <td>-</td>
+                            <td id="rdTotalDF">₹0.00</td>
                             <td id="rdTotalTDS">₹0.00</td>
                             <td id="rdTotalCommission">₹0.00</td>
                             <td>-</td>
@@ -842,6 +875,21 @@
                             <td>Bulk RD Posting Amount</td>
                             <td id="repRdCount">0</td>
                             <td id="repRdSum">0.00</td>
+                        </tr>
+                        <tr>
+                            <td>Total DF</td>
+                            <td id="repDfCount">0</td>
+                            <td id="repDfSum">0.00</td>
+                        </tr>
+                        <tr>
+                            <td>Total TDS</td>
+                            <td id="repTdsCount">0</td>
+                            <td id="repTdsSum">0.00</td>
+                        </tr>
+                        <tr>
+                            <td>Total Commission</td>
+                            <td id="repCommCount">0</td>
+                            <td id="repCommSum">0.00</td>
                         </tr>
                         <tr class="total-row">
                             <td>Grand Total</td>
@@ -1174,6 +1222,38 @@
             window.print();
         }
 
+        /* Render RD Accounts in Bulk RD Selection Container */
+        function renderRdAccountsSelection() {
+            const selectionBox = document.getElementById('rdAccountSelectionList');
+            selectionBox.innerHTML = "";
+
+            const rdAccounts = clients.filter(c => c.accountType === 'RD');
+
+            if (rdAccounts.length === 0) {
+                selectionBox.innerHTML = "<div style='color: #6b7280; font-size: 0.85rem;'>No RD Accounts available. Register an RD account first.</div>";
+                return;
+            }
+
+            rdAccounts.forEach((c, idx) => {
+                selectionBox.innerHTML += `
+                    <label class="rd-account-item">
+                        <input type="radio" name="rdAccountSelect" value="${c.amount}" onchange="updateRdAmountFromSelection(this.value)">
+                        <span><strong>Acc No:</strong> ${c.accountNo} | <strong>Name:</strong> ${c.customerName} | <strong>Monthly Denomination:</strong> ₹${c.amount.toFixed(2)}</span>
+                    </label>
+                `;
+            });
+        }
+
+        function updateRdAmountFromSelection(denomValue) {
+            const selectedRadios = document.querySelectorAll('input[name="rdAccountSelect"]:checked');
+            let sum = 0;
+            selectedRadios.forEach(radio => {
+                sum += parseFloat(radio.value) || 0;
+            });
+            document.getElementById('rdAmount').value = sum ? sum.toFixed(2) : "";
+            calculateBulkDeductions();
+        }
+
         /* Bulk RD Functions */
         function saveBulkRD() {
             const index = document.getElementById('rdIndex').value;
@@ -1181,7 +1261,7 @@
                 date: document.getElementById('rdDate').value,
                 refNo: document.getElementById('refNo').value,
                 amount: parseFloat(document.getElementById('rdAmount').value) || 0,
-                df: document.getElementById('df').value,
+                df: parseFloat(document.getElementById('df').value) || 0,
                 tds: parseFloat(document.getElementById('tds').value) || 0,
                 commission: parseFloat(document.getElementById('commission').value) || 0
             };
@@ -1206,6 +1286,8 @@
         function clearBulkRDForm() {
             document.getElementById('bulkRdForm').reset();
             document.getElementById('rdIndex').value = "";
+            const radios = document.querySelectorAll('input[name="rdAccountSelect"]');
+            radios.forEach(r => r.checked = false);
         }
 
         function loadRdToForm(idx) {
@@ -1264,12 +1346,14 @@
             const filteredData = getFilteredRdData();
 
             let totalAmt = 0;
+            let totalDf = 0;
             let totalTds = 0;
             let totalComm = 0;
 
             filteredData.forEach((r) => {
                 const originalIndex = rdPostings.indexOf(r);
                 totalAmt += r.amount;
+                totalDf += (parseFloat(r.df) || 0);
                 totalTds += r.tds;
                 totalComm += r.commission;
 
@@ -1278,7 +1362,7 @@
                         <td>${r.date}</td>
                         <td>${r.refNo}</td>
                         <td>₹${r.amount.toFixed(2)}</td>
-                        <td>${r.df}</td>
+                        <td>₹${(parseFloat(r.df) || 0).toFixed(2)}</td>
                         <td>₹${r.tds.toFixed(2)}</td>
                         <td>₹${r.commission.toFixed(2)}</td>
                         <td>
@@ -1293,6 +1377,7 @@
             });
 
             document.getElementById('rdTotalAmount').innerText = `₹${totalAmt.toFixed(2)}`;
+            document.getElementById('rdTotalDF').innerText = `₹${totalDf.toFixed(2)}`;
             document.getElementById('rdTotalTDS').innerText = `₹${totalTds.toFixed(2)}`;
             document.getElementById('rdTotalCommission').innerText = `₹${totalComm.toFixed(2)}`;
         }
@@ -1309,7 +1394,7 @@
                     <tr><td><strong>Date:</strong></td><td>${r.date}</td></tr>
                     <tr><td><strong>Reference No:</strong></td><td>${r.refNo}</td></tr>
                     <tr><td><strong>Amount:</strong></td><td>₹${r.amount.toFixed(2)}</td></tr>
-                    <tr><td><strong>DF:</strong></td><td>${r.df}</td></tr>
+                    <tr><td><strong>DF:</strong></td><td>₹${(parseFloat(r.df) || 0).toFixed(2)}</td></tr>
                     <tr><td><strong>TDS:</strong></td><td>₹${r.tds.toFixed(2)}</td></tr>
                     <tr><td><strong>Commission:</strong></td><td>₹${r.commission.toFixed(2)}</td></tr>
                 </table>
@@ -1328,10 +1413,11 @@
             }
 
             let rowsHtml = '';
-            let sumAmt = 0, sumTds = 0, sumComm = 0;
+            let sumAmt = 0, sumDf = 0, sumTds = 0, sumComm = 0;
 
             filteredData.forEach(r => {
                 sumAmt += r.amount;
+                sumDf += (parseFloat(r.df) || 0);
                 sumTds += r.tds;
                 sumComm += r.commission;
 
@@ -1340,7 +1426,7 @@
                         <td>${r.date}</td>
                         <td>${r.refNo}</td>
                         <td>₹${r.amount.toFixed(2)}</td>
-                        <td>${r.df}</td>
+                        <td>₹${(parseFloat(r.df) || 0).toFixed(2)}</td>
                         <td>₹${r.tds.toFixed(2)}</td>
                         <td>₹${r.commission.toFixed(2)}</td>
                     </tr>
@@ -1370,7 +1456,7 @@
                         <tr style="font-weight:bold; background-color:#f1f5f9;">
                             <td colspan="2">Total</td>
                             <td>₹${sumAmt.toFixed(2)}</td>
-                            <td>-</td>
+                            <td>₹${sumDf.toFixed(2)}</td>
                             <td>₹${sumTds.toFixed(2)}</td>
                             <td>₹${sumComm.toFixed(2)}</td>
                         </tr>
@@ -1436,6 +1522,7 @@
             document.getElementById('countNSC').innerText = counts.NSC;
 
             renderAccountsList();
+            renderRdAccountsSelection();
             renderRdList();
             generateReport();
         }
@@ -1458,12 +1545,24 @@
 
             const accSum = filteredClients.reduce((sum, c) => sum + c.amount, 0);
             const rdSum = filteredRd.reduce((sum, r) => sum + r.amount, 0);
+            const dfSum = filteredRd.reduce((sum, r) => sum + (parseFloat(r.df) || 0), 0);
+            const tdsSum = filteredRd.reduce((sum, r) => sum + (parseFloat(r.tds) || 0), 0);
+            const commSum = filteredRd.reduce((sum, r) => sum + (parseFloat(r.commission) || 0), 0);
 
             document.getElementById('repAccCount').innerText = filteredClients.length;
             document.getElementById('repAccSum').innerText = accSum.toFixed(2);
 
             document.getElementById('repRdCount').innerText = filteredRd.length;
             document.getElementById('repRdSum').innerText = rdSum.toFixed(2);
+
+            document.getElementById('repDfCount').innerText = filteredRd.length;
+            document.getElementById('repDfSum').innerText = dfSum.toFixed(2);
+
+            document.getElementById('repTdsCount').innerText = filteredRd.length;
+            document.getElementById('repTdsSum').innerText = tdsSum.toFixed(2);
+
+            document.getElementById('repCommCount').innerText = filteredRd.length;
+            document.getElementById('repCommSum').innerText = commSum.toFixed(2);
 
             document.getElementById('repTotalCount').innerText = filteredClients.length + filteredRd.length;
             document.getElementById('repGrandTotal').innerText = (accSum + rdSum).toFixed(2);
@@ -1585,6 +1684,21 @@
                             <td>Bulk RD Posting Amount</td>
                             <td>${document.getElementById('repRdCount').innerText}</td>
                             <td>${document.getElementById('repRdSum').innerText}</td>
+                        </tr>
+                        <tr>
+                            <td>Total DF</td>
+                            <td>${document.getElementById('repDfCount').innerText}</td>
+                            <td>${document.getElementById('repDfSum').innerText}</td>
+                        </tr>
+                        <tr>
+                            <td>Total TDS</td>
+                            <td>${document.getElementById('repTdsCount').innerText}</td>
+                            <td>${document.getElementById('repTdsSum').innerText}</td>
+                        </tr>
+                        <tr>
+                            <td>Total Commission</td>
+                            <td>${document.getElementById('repCommCount').innerText}</td>
+                            <td>${document.getElementById('repCommSum').innerText}</td>
                         </tr>
                         <tr style="font-weight: bold;">
                             <td>Grand Total</td>
