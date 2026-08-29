@@ -652,7 +652,7 @@
                     </div>
                     <div class="form-group">
                         <label>Default Fee (DF)</label>
-                        <input type="number" id="df" step="0.01" value="0.00">
+                        <input type="number" id="df" step="0.01" value="0.00" oninput="calculateBulkDeductions()">
                     </div>
                     <div class="form-group">
                         <label>TDS (0.08%)</label>
@@ -804,81 +804,64 @@
                 <button style="border:none; background:none; font-size:1.2rem; cursor:pointer;" onclick="closeCustomerModal()">✕</button>
             </div>
             <div id="modalCustomerDetails" class="modal-body-grid"></div>
-            <div class="btn-group" style="margin-top:20px;">
-                <button class="btn btn-primary" id="modalEditBtn">Edit Record</button>
-                <button class="btn btn-success" id="modalPrintBtn">Print Summary</button>
-                <button class="btn btn-secondary" onclick="closeCustomerModal()">Close</button>
-            </div>
         </div>
     </div>
 
-    <!-- HIDDEN PRINT AREA -->
-    <div id="printArea"></div>
+    <!-- PRINT CONTAINER -->
+    <div id="printArea" style="display:none;"></div>
 
-    <!-- FIREBASE MODULE SCRIPT -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // State storage using LocalStorage
+        let customers = JSON.parse(localStorage.getItem('ipo_customers')) || [];
+        let rdPostings = JSON.parse(localStorage.getItem('ipo_rd_postings')) || [];
+        let currentFilter = 'ALL';
 
-        // Your Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDNAkdz6wPmyhliidJMtNW1rRJ3ibK-5Tc",
-            authDomain: "localstorage-71f48.firebaseapp.com",
-            projectId: "localstorage-71f48",
-            storageBucket: "localstorage-71f48.firebasestorage.app",
-            messagingSenderId: "721485382460",
-            appId: "1:721485382460:web:3eefa39343e815a7519439",
-            measurementId: "G-0FCV6BT5ZZ"
+        // Initialize App
+        window.onload = function() {
+            if (sessionStorage.getItem('ipo_authenticated') === 'true') {
+                document.getElementById('loginOverlay').style.display = 'none';
+            }
+            setDefaultDates();
+            renderDashboard();
+            renderCustomerTable();
+            renderRdSelectionList();
+            renderRdList();
+            generateReport();
         };
 
-        // Initialize Firebase Services
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        // Global state arrays storing records with their unique Firebase keys
-        window.clients = [];
-        window.rdPostings = [];
-        window.activeFilter = 'ALL';
-
-        // Global references to Firebase nodes
-        const clientsRef = ref(db, 'clients');
-        const rdRef = ref(db, 'rdPostings');
-
-        // Realtime listener for Customer Accounts
-        onValue(clientsRef, (snapshot) => {
-            const data = snapshot.val();
-            window.clients = [];
-            if (data) {
-                Object.keys(data).forEach(key => {
-                    window.clients.push({ id: key, ...data[key] });
-                });
+        // Authentication
+        function authenticateUser() {
+            const user = document.getElementById('loginId').value;
+            const pass = document.getElementById('loginPass').value;
+            if (user === 'admin' && pass === 'admin123') {
+                sessionStorage.setItem('ipo_authenticated', 'true');
+                document.getElementById('loginOverlay').style.display = 'none';
+            } else {
+                document.getElementById('loginError').style.display = 'block';
             }
-            updateUI();
-        });
+        }
 
-        // Realtime listener for Bulk RD Postings
-        onValue(rdRef, (snapshot) => {
-            const data = snapshot.val();
-            window.rdPostings = [];
-            if (data) {
-                Object.keys(data).forEach(key => {
-                    window.rdPostings.push({ id: key, ...data[key] });
-                });
-            }
-            updateUI();
-        });
+        function logoutUser() {
+            sessionStorage.removeItem('ipo_authenticated');
+            document.getElementById('loginOverlay').style.display = 'flex';
+        }
 
-        // Close search results when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!e.target.closest('.search-container')) {
-                document.getElementById('searchResultsFlash').style.display = 'none';
-            }
-        });
+        function setDefaultDates() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('clientDate').value = today;
+            document.getElementById('rdDate').value = today;
+        }
 
-        // Save Customer Account to Firebase
-        window.saveClient = function() {
-            const key = document.getElementById('clientIndex').value;
-            const data = {
+        function saveToStorage() {
+            localStorage.setItem('ipo_customers', JSON.stringify(customers));
+            localStorage.setItem('ipo_rd_postings', JSON.stringify(rdPostings));
+        }
+
+        // Customer Management
+        function saveClient() {
+            const index = document.getElementById('clientIndex').value;
+            const clientData = {
                 accountType: document.getElementById('accountType').value,
                 amount: parseFloat(document.getElementById('clientAmount').value) || 0,
                 years: document.getElementById('years').value,
@@ -895,216 +878,34 @@
                 address: document.getElementById('address').value
             };
 
-            if (!data.accountNo || !data.customerName || !data.date) {
-                alert("Please fill in required fields (Date, Account No, Customer Name).");
+            if (!clientData.accountNo || !clientData.customerName) {
+                alert('Please provide Account Number and Customer Name.');
                 return;
             }
 
-            if (key === "") {
-                const newRef = push(clientsRef);
-                set(newRef, data);
+            if (index === '') {
+                customers.push(clientData);
             } else {
-                set(ref(db, `clients/${key}`), data);
-                document.getElementById('clientIndex').value = "";
+                customers[parseInt(index)] = clientData;
             }
 
+            saveToStorage();
             clearClientForm();
-        };
+            renderDashboard();
+            renderCustomerTable();
+            renderRdSelectionList();
+            generateReport();
+        }
 
-        // Delete Customer Account from Firebase
-        window.deleteClientDirect = function(key) {
-            if (confirm("Are you sure you want to delete this customer account?")) {
-                remove(ref(db, `clients/${key}`));
-                clearClientForm();
-            }
-        };
-
-        window.deleteClient = function() {
-            const key = document.getElementById('clientIndex').value;
-            if (key !== "") {
-                window.deleteClientDirect(key);
-            } else {
-                alert("Select an account from the table below to delete.");
-            }
-        };
-
-        // Save Bulk RD Posting to Firebase
-        window.saveBulkRD = function() {
-            const key = document.getElementById('rdIndex').value;
-            const data = {
-                date: document.getElementById('rdDate').value,
-                refNo: document.getElementById('refNo').value,
-                amount: parseFloat(document.getElementById('rdAmount').value) || 0,
-                df: parseFloat(document.getElementById('df').value) || 0,
-                tds: parseFloat(document.getElementById('tds').value) || 0,
-                commission: parseFloat(document.getElementById('commission').value) || 0
-            };
-
-            if (!data.date || !data.refNo) {
-                alert("Please fill in Date and Reference No.");
-                return;
-            }
-
-            if (key === "") {
-                const newRef = push(rdRef);
-                set(newRef, data);
-            } else {
-                set(ref(db, `rdPostings/${key}`), data);
-                document.getElementById('rdIndex').value = "";
-            }
-
-            clearBulkRDForm();
-        };
-
-        // Delete Bulk RD Record from Firebase
-        window.deleteRdDirect = function(key) {
-            if (confirm("Are you sure you want to delete this RD Posting record?")) {
-                remove(ref(db, `rdPostings/${key}`));
-                clearBulkRDForm();
-            }
-        };
-
-        window.deleteBulkRD = function() {
-            const key = document.getElementById('rdIndex').value;
-            if (key !== "") {
-                window.deleteRdDirect(key);
-            } else {
-                alert("Select an RD entry from the table to delete.");
-            }
-        };
-
-        // UI Helper Functions
-        window.authenticateUser = function() {
-            const enteredId = document.getElementById('loginId').value.trim();
-            const enteredPass = document.getElementById('loginPass').value.trim();
-            const errorElement = document.getElementById('loginError');
-
-            if (enteredId === "MI2745020101403" && enteredPass === "2745020101349") {
-                document.getElementById('loginOverlay').style.display = 'none';
-                errorElement.style.display = 'none';
-                document.getElementById('loginPass').value = "";
-            } else {
-                errorElement.style.display = 'block';
-            }
-        };
-
-        window.logoutUser = function() {
-            document.getElementById('loginOverlay').style.display = 'flex';
-        };
-
-        window.calculateBulkDeductions = function() {
-            const amountInput = document.getElementById('rdAmount').value;
-            const amount = parseFloat(amountInput) || 0;
-            const tds = amount * 0.0008;
-            const commission = amount * 0.0392;
-
-            document.getElementById('tds').value = tds ? tds.toFixed(2) : "";
-            document.getElementById('commission').value = commission ? commission.toFixed(2) : "";
-        };
-
-        window.searchCustomersLive = function() {
-            const query = document.getElementById('custSearchInput').value.trim().toLowerCase();
-            const flashContainer = document.getElementById('searchResultsFlash');
-
-            if (query === "") {
-                flashContainer.style.display = 'none';
-                flashContainer.innerHTML = "";
-                return;
-            }
-
-            const matches = window.clients.filter(c => 
-                (c.customerName && c.customerName.toLowerCase().includes(query)) ||
-                (c.accountNo && c.accountNo.toLowerCase().includes(query)) ||
-                (c.mobileNo && c.mobileNo.toLowerCase().includes(query)) ||
-                (c.cifNo && c.cifNo.toLowerCase().includes(query)) ||
-                (c.panCard && c.panCard.toLowerCase().includes(query))
-            );
-
-            if (matches.length === 0) {
-                flashContainer.innerHTML = `<div class="flash-item" style="cursor:default;"><span class="cust-sub">No customer records found matching "${query}"</span></div>`;
-            } else {
-                let html = "";
-                matches.forEach(c => {
-                    html += `
-                        <div class="flash-item" onclick="openCustomerModal('${c.id}')">
-                            <div>
-                                <div class="cust-info">${c.customerName}</div>
-                                <div class="cust-sub">Acc: ${c.accountNo} | CIF: ${c.cifNo} | Mob: ${c.mobileNo || 'N/A'}</div>
-                            </div>
-                            <span class="cust-acc">${c.accountType} - ₹${c.amount.toFixed(2)}</span>
-                        </div>
-                    `;
-                });
-                flashContainer.innerHTML = html;
-            }
-
-            flashContainer.style.display = 'block';
-        };
-
-        window.openCustomerModal = function(key) {
-            const c = window.clients.find(item => item.id === key);
-            if (!c) return;
-
-            document.getElementById('searchResultsFlash').style.display = 'none';
-
-            const detailsGrid = document.getElementById('modalCustomerDetails');
-            detailsGrid.innerHTML = `
-                <div class="modal-field"><label>Account Type</label><span>${c.accountType}</span></div>
-                <div class="modal-field"><label>Amount / Denomination</label><span>₹${c.amount.toFixed(2)}</span></div>
-                <div class="modal-field"><label>Account No</label><span>${c.accountNo}</span></div>
-                <div class="modal-field"><label>Customer Name</label><span>${c.customerName}</span></div>
-                <div class="modal-field"><label>Father / Husband Name</label><span>${c.guardianName || '-'}</span></div>
-                <div class="modal-field"><label>CIF No</label><span>${c.cifNo || '-'}</span></div>
-                <div class="modal-field"><label>ASLAAS No</label><span>${c.aslaasNo || '-'}</span></div>
-                <div class="modal-field"><label>Date of Opening</label><span>${c.date}</span></div>
-                <div class="modal-field"><label>Tenure</label><span>${c.years}</span></div>
-                <div class="modal-field"><label>Date of Birth</label><span>${c.dob || '-'}</span></div>
-                <div class="modal-field"><label>Mobile No</label><span>${c.mobileNo || '-'}</span></div>
-                <div class="modal-field"><label>Aadhaar Card</label><span>${c.aadhaarCard || '-'}</span></div>
-                <div class="modal-field"><label>PAN Card</label><span>${c.panCard || '-'}</span></div>
-                <div class="modal-field full"><label>Address</label><span>${c.address || '-'}</span></div>
-            `;
-
-            document.getElementById('modalEditBtn').onclick = function() {
-                closeCustomerModal();
-                loadClientToForm(key);
-            };
-
-            document.getElementById('modalPrintBtn').onclick = function() {
-                printSingleCustomer(key);
-            };
-
-            document.getElementById('customerModal').style.display = 'flex';
-        };
-
-        window.closeCustomerModal = function() {
-            document.getElementById('customerModal').style.display = 'none';
-        };
-
-        window.toggleAmountLabel = function() {
-            const accType = document.getElementById('accountType').value;
-            const label = document.getElementById('amountLabel');
-            label.innerText = accType === 'RD' ? "Monthly Denomination" : "Amount";
-        };
-
-        window.clearClientForm = function() {
-            document.getElementById('clientForm').reset();
-            document.getElementById('clientIndex').value = "";
-            toggleAmountLabel();
-        };
-
-        window.loadClientToForm = function(key) {
-            const c = window.clients.find(item => item.id === key);
-            if (!c) return;
-
-            document.getElementById('clientIndex').value = key;
+        function editClient(index) {
+            const c = customers[index];
+            document.getElementById('clientIndex').value = index;
             document.getElementById('accountType').value = c.accountType;
-            toggleAmountLabel();
             document.getElementById('clientAmount').value = c.amount;
             document.getElementById('years').value = c.years;
             document.getElementById('clientDate').value = c.date;
             document.getElementById('cifNo').value = c.cifNo;
-            document.getElementById('aslaasNo').value = c.aslaasNo || "";
+            document.getElementById('aslaasNo').value = c.aslaasNo;
             document.getElementById('accountNo').value = c.accountNo;
             document.getElementById('customerName').value = c.customerName;
             document.getElementById('guardianName').value = c.guardianName;
@@ -1113,323 +914,311 @@
             document.getElementById('aadhaarCard').value = c.aadhaarCard;
             document.getElementById('panCard').value = c.panCard;
             document.getElementById('address').value = c.address;
+            toggleAmountLabel();
+            window.scrollTo({ top: document.getElementById('clientFormSection').offsetTop, behavior: 'smooth' });
+        }
 
-            document.getElementById('clientFormSection').scrollIntoView({ behavior: 'smooth' });
-        };
+        function deleteClient() {
+            const index = document.getElementById('clientIndex').value;
+            if (index !== '' && confirm('Are you sure you want to delete this customer record?')) {
+                customers.splice(parseInt(index), 1);
+                saveToStorage();
+                clearClientForm();
+                renderDashboard();
+                renderCustomerTable();
+                renderRdSelectionList();
+                generateReport();
+            }
+        }
 
-        window.printSingleCustomer = function(key) {
-            const c = window.clients.find(item => item.id === key);
-            if (!c) return;
+        function clearClientForm() {
+            document.getElementById('clientForm').reset();
+            document.getElementById('clientIndex').value = '';
+            setDefaultDates();
+            toggleAmountLabel();
+        }
 
-            const printContainer = document.getElementById('printArea');
-            printContainer.innerHTML = `
-                <div class="print-header">
-                    <h2>INDIAN POST OFFICE MANAGEMENT SYSTEM</h2>
-                    <h3>Customer Account Summary</h3>
-                </div>
-                <table class="print-table">
-                    <tr><td><strong>Account Type:</strong></td><td>${c.accountType}</td></tr>
-                    <tr><td><strong>Amount / Denomination:</strong></td><td>₹${c.amount.toFixed(2)}</td></tr>
-                    <tr><td><strong>Tenure:</strong></td><td>${c.years}</td></tr>
-                    <tr><td><strong>Date:</strong></td><td>${c.date}</td></tr>
-                    <tr><td><strong>CIF No:</strong></td><td>${c.cifNo}</td></tr>
-                    <tr><td><strong>ASLAAS No:</strong></td><td>${c.aslaasNo || '-'}</td></tr>
-                    <tr><td><strong>Account No:</strong></td><td>${c.accountNo}</td></tr>
-                    <tr><td><strong>Customer Name:</strong></td><td>${c.customerName}</td></tr>
-                    <tr><td><strong>Father/Husband Name:</strong></td><td>${c.guardianName}</td></tr>
-                    <tr><td><strong>DOB:</strong></td><td>${c.dob}</td></tr>
-                    <tr><td><strong>Mobile No:</strong></td><td>${c.mobileNo || '-'}</td></tr>
-                    <tr><td><strong>Aadhaar Card:</strong></td><td>${c.aadhaarCard}</td></tr>
-                    <tr><td><strong>PAN Card:</strong></td><td>${c.panCard}</td></tr>
-                    <tr><td><strong>Address:</strong></td><td>${c.address}</td></tr>
-                </table>
-            `;
-            window.print();
-        };
+        function toggleAmountLabel() {
+            const type = document.getElementById('accountType').value;
+            const label = document.getElementById('amountLabel');
+            if (type === 'RD') label.innerText = 'Monthly Denomination';
+            else if (type === 'SA') label.innerText = 'Opening Deposit Amount';
+            else label.innerText = 'Principal Investment Amount';
+        }
 
-        window.renderRdAccountsSelection = function() {
-            const selectionBox = document.getElementById('rdAccountSelectionList');
-            selectionBox.innerHTML = "";
-
-            const rdAccounts = window.clients.filter(c => c.accountType === 'RD');
-
-            if (rdAccounts.length === 0) {
-                selectionBox.innerHTML = "<div style='color: #6b7280; font-size: 0.85rem;'>No RD Accounts available. Register an RD account first.</div>";
+        // Live Search
+        function searchCustomersLive() {
+            const query = document.getElementById('custSearchInput').value.toLowerCase().trim();
+            const flash = document.getElementById('searchResultsFlash');
+            if (!query) {
+                flash.style.display = 'none';
                 return;
             }
 
-            rdAccounts.forEach((c) => {
-                selectionBox.innerHTML += `
-                    <label class="rd-account-item">
-                        <input type="radio" name="rdAccountSelect" value="${c.amount}" onchange="updateRdAmountFromSelection(this.value)">
-                        <span><strong>Acc No:</strong> ${c.accountNo} | <strong>Name:</strong> ${c.customerName} | <strong>Monthly Denomination:</strong> ₹${c.amount.toFixed(2)}</span>
-                    </label>
+            const results = customers.filter(c => 
+                (c.customerName && c.customerName.toLowerCase().includes(query)) ||
+                (c.accountNo && c.accountNo.toLowerCase().includes(query)) ||
+                (c.cifNo && c.cifNo.toLowerCase().includes(query)) ||
+                (c.mobileNo && c.mobileNo.toLowerCase().includes(query)) ||
+                (c.panCard && c.panCard.toLowerCase().includes(query))
+            );
+
+            if (results.length === 0) {
+                flash.innerHTML = '<div class="flash-item">No matching records found</div>';
+            } else {
+                flash.innerHTML = results.map(c => `
+                    <div class="flash-item" onclick="openCustomerModalByAcc('${c.accountNo}')">
+                        <div>
+                            <div class="cust-info">${c.customerName}</div>
+                            <div class="cust-sub">CIF: ${c.cifNo || 'N/A'} | Mob: ${c.mobileNo || 'N/A'}</div>
+                        </div>
+                        <div class="cust-acc">${c.accountType} - ${c.accountNo}</div>
+                    </div>
+                `).join('');
+            }
+            flash.style.display = 'block';
+        }
+
+        // Dashboard & Filtering
+        function renderDashboard() {
+            const counts = { ALL: customers.length, RD: 0, TD: 0, SA: 0, MIS: 0, KVP: 0, NSC: 0 };
+            customers.forEach(c => {
+                if (counts[c.accountType] !== undefined) counts[c.accountType]++;
+            });
+            Object.keys(counts).forEach(k => {
+                const el = document.getElementById('count' + k);
+                if (el) el.innerText = counts[k];
+            });
+        }
+
+        function filterByAccountType(type) {
+            currentFilter = type;
+            document.getElementById('currentFilterTitle').innerText = type === 'ALL' ? '' : `(Filtered: ${type})`;
+            renderCustomerTable();
+        }
+
+        function renderCustomerTable() {
+            const tbody = document.getElementById('clientTableBody');
+            const filtered = currentFilter === 'ALL' ? customers : customers.filter(c => c.accountType === currentFilter);
+
+            tbody.innerHTML = filtered.map((c, idx) => {
+                const originalIndex = customers.indexOf(c);
+                return `
+                    <tr>
+                        <td><strong>${c.accountNo}</strong></td>
+                        <td>${c.customerName}</td>
+                        <td><span style="background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:4px; font-weight:600;">${c.accountType}</span></td>
+                        <td>₹${c.amount.toFixed(2)}</td>
+                        <td>${c.years}</td>
+                        <td>${c.date}</td>
+                        <td>${c.mobileNo}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-action-edit" onclick="editClient(${originalIndex})">Edit</button>
+                                <button class="btn-action-print" onclick="openCustomerModal(${originalIndex})">View</button>
+                            </div>
+                        </td>
+                    </tr>
                 `;
-            });
-        };
+            }).join('');
+        }
 
-        window.updateRdAmountFromSelection = function(denomValue) {
-            const selectedRadios = document.querySelectorAll('input[name="rdAccountSelect"]:checked');
-            let sum = 0;
-            selectedRadios.forEach(radio => {
-                sum += parseFloat(radio.value) || 0;
-            });
-            document.getElementById('rdAmount').value = sum ? sum.toFixed(2) : "";
+        // Bulk RD Functions
+        function renderRdSelectionList() {
+            const listContainer = document.getElementById('rdAccountSelectionList');
+            const rdCustomers = customers.filter(c => c.accountType === 'RD');
+
+            if (rdCustomers.length === 0) {
+                listContainer.innerHTML = '<p style="font-size:0.85rem; color:#6b7280;">No active RD accounts registered.</p>';
+                return;
+            }
+
+            listContainer.innerHTML = rdCustomers.map(c => `
+                <div class="rd-account-item">
+                    <input type="checkbox" class="rd-checkbox" value="${c.amount}" onchange="recalculateSelectedRDs()">
+                    <span><strong>${c.accountNo}</strong> - ${c.customerName} (Denom: ₹${c.amount})</span>
+                </div>
+            `).join('');
+        }
+
+        function recalculateSelectedRDs() {
+            const checkboxes = document.querySelectorAll('.rd-checkbox:checked');
+            let total = 0;
+            checkboxes.forEach(cb => total += parseFloat(cb.value));
+            document.getElementById('rdAmount').value = total.toFixed(2);
             calculateBulkDeductions();
-        };
+        }
 
-        window.clearBulkRDForm = function() {
-            document.getElementById('bulkRdForm').reset();
-            document.getElementById('rdIndex').value = "";
-            const radios = document.querySelectorAll('input[name="rdAccountSelect"]');
-            radios.forEach(r => r.checked = false);
-        };
+        function calculateBulkDeductions() {
+            const total = parseFloat(document.getElementById('rdAmount').value) || 0;
+            const tds = total * 0.0008; // 0.08%
+            const commission = total * 0.0392; // 3.92%
+            document.getElementById('tds').value = tds.toFixed(2);
+            document.getElementById('commission').value = commission.toFixed(2);
+        }
 
-        window.loadRdToForm = function(key) {
-            const r = window.rdPostings.find(item => item.id === key);
-            if (!r) return;
+        function saveBulkRD() {
+            const index = document.getElementById('rdIndex').value;
+            const rdData = {
+                date: document.getElementById('rdDate').value,
+                refNo: document.getElementById('refNo').value,
+                amount: parseFloat(document.getElementById('rdAmount').value) || 0,
+                df: parseFloat(document.getElementById('df').value) || 0,
+                tds: parseFloat(document.getElementById('tds').value) || 0,
+                commission: parseFloat(document.getElementById('commission').value) || 0
+            };
 
-            document.getElementById('rdIndex').value = key;
+            if (!rdData.refNo || rdData.amount <= 0) {
+                alert('Please enter a valid Reference No and Amount.');
+                return;
+            }
+
+            if (index === '') {
+                rdPostings.push(rdData);
+            } else {
+                rdPostings[parseInt(index)] = rdData;
+            }
+
+            saveToStorage();
+            clearBulkRDForm();
+            renderRdList();
+            generateReport();
+        }
+
+        function renderRdList() {
+            const tbody = document.getElementById('rdTableBody');
+            const fromDate = document.getElementById('rdFromDate').value;
+            const toDate = document.getElementById('rdToDate').value;
+
+            let filtered = rdPostings;
+            if (fromDate) filtered = filtered.filter(r => r.date >= fromDate);
+            if (toDate) filtered = filtered.filter(r => r.date <= toDate);
+
+            let totAmt = 0, totDF = 0, totTDS = 0, totComm = 0;
+
+            tbody.innerHTML = filtered.map((r, idx) => {
+                const origIndex = rdPostings.indexOf(r);
+                totAmt += r.amount;
+                totDF += r.df;
+                totTDS += r.tds;
+                totComm += r.commission;
+
+                return `
+                    <tr>
+                        <td>${r.date}</td>
+                        <td>${r.refNo}</td>
+                        <td>₹${r.amount.toFixed(2)}</td>
+                        <td>₹${r.df.toFixed(2)}</td>
+                        <td>₹${r.tds.toFixed(2)}</td>
+                        <td>₹${r.commission.toFixed(2)}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-action-edit" onclick="editBulkRD(${origIndex})">Edit</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('rdTotalAmount').innerText = '₹' + totAmt.toFixed(2);
+            document.getElementById('rdTotalDF').innerText = '₹' + totDF.toFixed(2);
+            document.getElementById('rdTotalTDS').innerText = '₹' + totTDS.toFixed(2);
+            document.getElementById('rdTotalCommission').innerText = '₹' + totComm.toFixed(2);
+        }
+
+        function editBulkRD(index) {
+            const r = rdPostings[index];
+            document.getElementById('rdIndex').value = index;
             document.getElementById('rdDate').value = r.date;
             document.getElementById('refNo').value = r.refNo;
             document.getElementById('rdAmount').value = r.amount;
             document.getElementById('df').value = r.df;
             document.getElementById('tds').value = r.tds;
             document.getElementById('commission').value = r.commission;
+            window.scrollTo({ top: document.getElementById('bulkRdSection').offsetTop, behavior: 'smooth' });
+        }
 
-            document.getElementById('bulkRdSection').scrollIntoView({ behavior: 'smooth' });
-        };
+        function deleteBulkRD() {
+            const index = document.getElementById('rdIndex').value;
+            if (index !== '' && confirm('Delete this RD posting record?')) {
+                rdPostings.splice(parseInt(index), 1);
+                saveToStorage();
+                clearBulkRDForm();
+                renderRdList();
+                generateReport();
+            }
+        }
 
-        window.resetRdDateFilter = function() {
-            document.getElementById('rdFromDate').value = "";
-            document.getElementById('rdToDate').value = "";
+        function clearBulkRDForm() {
+            document.getElementById('bulkRdForm').reset();
+            document.getElementById('rdIndex').value = '';
+            setDefaultDates();
+            document.querySelectorAll('.rd-checkbox').forEach(cb => cb.checked = false);
+        }
+
+        function resetRdDateFilter() {
+            document.getElementById('rdFromDate').value = '';
+            document.getElementById('rdToDate').value = '';
             renderRdList();
-        };
+        }
 
-        window.getFilteredRdData = function() {
-            const from = document.getElementById('rdFromDate').value;
-            const to = document.getElementById('rdToDate').value;
-
-            return window.rdPostings.filter(r => {
-                let valid = true;
-                if (from && r.date < from) valid = false;
-                if (to && r.date > to) valid = false;
-                return valid;
-            });
-        };
-
-        window.renderRdList = function() {
-            const tbody = document.getElementById('rdTableBody');
-            tbody.innerHTML = "";
-
-            const filteredData = getFilteredRdData();
-
-            let totalAmt = 0;
-            let totalDf = 0;
-            let totalTds = 0;
-            let totalComm = 0;
-
-            filteredData.forEach((r) => {
-                totalAmt += r.amount;
-                totalDf += (parseFloat(r.df) || 0);
-                totalTds += r.tds;
-                totalComm += r.commission;
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${r.date}</td>
-                        <td>${r.refNo}</td>
-                        <td>₹${r.amount.toFixed(2)}</td>
-                        <td>₹${(parseFloat(r.df) || 0).toFixed(2)}</td>
-                        <td>₹${r.tds.toFixed(2)}</td>
-                        <td>₹${r.commission.toFixed(2)}</td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn-action-edit" onclick="loadRdToForm('${r.id}')">Edit</button>
-                                <button class="btn-action-delete" onclick="deleteRdDirect('${r.id}')">Delete</button>
-                                <button class="btn-action-print" onclick="printSingleRdRecord('${r.id}')">Print</button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            document.getElementById('rdTotalAmount').innerText = `₹${totalAmt.toFixed(2)}`;
-            document.getElementById('rdTotalDF').innerText = `₹${totalDf.toFixed(2)}`;
-            document.getElementById('rdTotalTDS').innerText = `₹${totalTds.toFixed(2)}`;
-            document.getElementById('rdTotalCommission').innerText = `₹${totalComm.toFixed(2)}`;
-        };
-
-        window.printSingleRdRecord = function(key) {
-            const r = window.rdPostings.find(item => item.id === key);
-            if (!r) return;
-
-            const printContainer = document.getElementById('printArea');
-            printContainer.innerHTML = `
-                <div class="print-header">
-                    <h2>INDIAN POST OFFICE MANAGEMENT SYSTEM</h2>
-                    <h3>Bulk RD Posting Record Summary</h3>
-                </div>
-                <table class="print-table">
-                    <tr><td><strong>Date:</strong></td><td>${r.date}</td></tr>
-                    <tr><td><strong>Reference No:</strong></td><td>${r.refNo}</td></tr>
-                    <tr><td><strong>Amount:</strong></td><td>₹${r.amount.toFixed(2)}</td></tr>
-                    <tr><td><strong>DF:</strong></td><td>₹${(parseFloat(r.df) || 0).toFixed(2)}</td></tr>
-                    <tr><td><strong>TDS:</strong></td><td>₹${r.tds.toFixed(2)}</td></tr>
-                    <tr><td><strong>Commission:</strong></td><td>₹${r.commission.toFixed(2)}</td></tr>
-                </table>
+        // Modal Controls
+        function openCustomerModal(index) {
+            const c = customers[index];
+            const modalBody = document.getElementById('modalCustomerDetails');
+            modalBody.innerHTML = `
+                <div class="modal-field"><label>Account Number</label><span>${c.accountNo}</span></div>
+                <div class="modal-field"><label>Account Type</label><span>${c.accountType}</span></div>
+                <div class="modal-field"><label>Customer Name</label><span>${c.customerName}</span></div>
+                <div class="modal-field"><label>Father/Husband Name</label><span>${c.guardianName || 'N/A'}</span></div>
+                <div class="modal-field"><label>CIF Number</label><span>${c.cifNo || 'N/A'}</span></div>
+                <div class="modal-field"><label>ASLAAS Number</label><span>${c.aslaasNo || 'N/A'}</span></div>
+                <div class="modal-field"><label>Denomination/Amount</label><span>₹${c.amount.toFixed(2)}</span></div>
+                <div class="modal-field"><label>Tenure</label><span>${c.years}</span></div>
+                <div class="modal-field"><label>Date of Opening</label><span>${c.date}</span></div>
+                <div class="modal-field"><label>Date of Birth</label><span>${c.dob || 'N/A'}</span></div>
+                <div class="modal-field"><label>Mobile Number</label><span>${c.mobileNo || 'N/A'}</span></div>
+                <div class="modal-field"><label>PAN Card</label><span>${c.panCard || 'N/A'}</span></div>
+                <div class="modal-field"><label>Aadhaar Card</label><span>${c.aadhaarCard || 'N/A'}</span></div>
+                <div class="modal-field full"><label>Address</label><span>${c.address || 'N/A'}</span></div>
             `;
-            window.print();
-        };
+            document.getElementById('customerModal').style.display = 'flex';
+        }
 
-        window.printBulkRDRecords = function() {
-            const filteredData = getFilteredRdData();
-            const from = document.getElementById('rdFromDate').value || 'Beginning';
-            const to = document.getElementById('rdToDate').value || 'Present';
+        function openCustomerModalByAcc(accNo) {
+            document.getElementById('searchResultsFlash').style.display = 'none';
+            const index = customers.findIndex(c => c.accountNo === accNo);
+            if (index !== -1) openCustomerModal(index);
+        }
 
-            if (filteredData.length === 0) {
-                alert("No Bulk RD records available to print for selected date range.");
-                return;
+        function closeCustomerModal() {
+            document.getElementById('customerModal').style.display = 'none';
+        }
+
+        // Financial Analytics & Reporting
+        function generateReport() {
+            const fromDate = document.getElementById('fromDate').value;
+            const toDate = document.getElementById('toDate').value;
+
+            let filteredAcc = customers;
+            let filteredRd = rdPostings;
+
+            if (fromDate) {
+                filteredAcc = filteredAcc.filter(c => c.date >= fromDate);
+                filteredRd = filteredRd.filter(r => r.date >= fromDate);
+            }
+            if (toDate) {
+                filteredAcc = filteredAcc.filter(c => c.date <= toDate);
+                filteredRd = filteredRd.filter(r => r.date <= toDate);
             }
 
-            let rowsHtml = '';
-            let sumAmt = 0, sumDf = 0, sumTds = 0, sumComm = 0;
+            const accSum = filteredAcc.reduce((acc, c) => acc + c.amount, 0);
+            const rdSum = filteredRd.reduce((acc, r) => acc + r.amount, 0);
+            const dfSum = filteredRd.reduce((acc, r) => acc + r.df, 0);
+            const tdsSum = filteredRd.reduce((acc, r) => acc + r.tds, 0);
+            const commSum = filteredRd.reduce((acc, r) => acc + r.commission, 0);
 
-            filteredData.forEach(r => {
-                sumAmt += r.amount;
-                sumDf += (parseFloat(r.df) || 0);
-                sumTds += r.tds;
-                sumComm += r.commission;
-
-                rowsHtml += `
-                    <tr>
-                        <td>${r.date}</td>
-                        <td>${r.refNo}</td>
-                        <td>₹${r.amount.toFixed(2)}</td>
-                        <td>₹${(parseFloat(r.df) || 0).toFixed(2)}</td>
-                        <td>₹${r.tds.toFixed(2)}</td>
-                        <td>₹${r.commission.toFixed(2)}</td>
-                    </tr>
-                `;
-            });
-
-            const printContainer = document.getElementById('printArea');
-            printContainer.innerHTML = `
-                <div class="print-header">
-                    <h2>INDIAN POST OFFICE MANAGEMENT SYSTEM</h2>
-                    <h3>Submitted Bulk RD Postings Summary</h3>
-                    <p><strong>Date Range:</strong> ${from} to ${to}</p>
-                </div>
-                <table class="print-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Ref No</th>
-                            <th>Amount</th>
-                            <th>DF</th>
-                            <th>TDS</th>
-                            <th>Commission</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${rowsHtml}
-                        <tr style="font-weight:bold; background-color:#f1f5f9;">
-                            <td colspan="2">Total</td>
-                            <td>₹${sumAmt.toFixed(2)}</td>
-                            <td>₹${sumDf.toFixed(2)}</td>
-                            <td>₹${sumTds.toFixed(2)}</td>
-                            <td>₹${sumComm.toFixed(2)}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            `;
-
-            window.print();
-        };
-
-        window.filterByAccountType = function(type) {
-            window.activeFilter = type;
-            renderAccountsList();
-            document.getElementById('accountsListSection').scrollIntoView({ behavior: 'smooth' });
-        };
-
-        window.renderAccountsList = function() {
-            const tbody = document.getElementById('clientTableBody');
-            tbody.innerHTML = "";
-
-            const titleElement = document.getElementById('currentFilterTitle');
-            titleElement.innerText = window.activeFilter === 'ALL' ? "(Showing All)" : `(Filtered by: ${window.activeFilter})`;
-
-            window.clients.forEach((c) => {
-                if (window.activeFilter === 'ALL' || c.accountType === window.activeFilter) {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${c.accountNo}</td>
-                            <td>${c.customerName}</td>
-                            <td><strong>${c.accountType}</strong></td>
-                            <td>₹${c.amount.toFixed(2)}</td>
-                            <td>${c.years}</td>
-                            <td>${c.date}</td>
-                            <td>${c.mobileNo || '-'}</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn-action-edit" onclick="loadClientToForm('${c.id}')">Edit</button>
-                                    <button class="btn-action-delete" onclick="deleteClientDirect('${c.id}')">Delete</button>
-                                    <button class="btn-action-print" onclick="printSingleCustomer('${c.id}')">Print</button>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
-                }
-            });
-        };
-
-        window.updateUI = function() {
-            const counts = { ALL: window.clients.length, RD: 0, TD: 0, SA: 0, MIS: 0, KVP: 0, NSC: 0 };
-
-            window.clients.forEach(c => {
-                if (counts[c.accountType] !== undefined) {
-                    counts[c.accountType]++;
-                }
-            });
-
-            document.getElementById('countALL').innerText = counts.ALL;
-            document.getElementById('countRD').innerText = counts.RD;
-            document.getElementById('countTD').innerText = counts.TD;
-            document.getElementById('countSA').innerText = counts.SA;
-            document.getElementById('countMIS').innerText = counts.MIS;
-            document.getElementById('countKVP').innerText = counts.KVP;
-            document.getElementById('countNSC').innerText = counts.NSC;
-
-            renderAccountsList();
-            renderRdAccountsSelection();
-            renderRdList();
-            generateReport();
-        };
-
-        window.generateReport = function() {
-            const from = document.getElementById('fromDate').value;
-            const to = document.getElementById('toDate').value;
-
-            let filteredClients = window.clients;
-            let filteredRd = window.rdPostings;
-
-            if (from) {
-                filteredClients = filteredClients.filter(c => c.date >= from);
-                filteredRd = filteredRd.filter(r => r.date >= from);
-            }
-            if (to) {
-                filteredClients = filteredClients.filter(c => c.date <= to);
-                filteredRd = filteredRd.filter(r => r.date <= to);
-            }
-
-            const accSum = filteredClients.reduce((sum, c) => sum + c.amount, 0);
-            const rdSum = filteredRd.reduce((sum, r) => sum + r.amount, 0);
-            const dfSum = filteredRd.reduce((sum, r) => sum + (parseFloat(r.df) || 0), 0);
-            const tdsSum = filteredRd.reduce((sum, r) => sum + (parseFloat(r.tds) || 0), 0);
-            const commSum = filteredRd.reduce((sum, r) => sum + (parseFloat(r.commission) || 0), 0);
-
-            document.getElementById('repAccCount').innerText = filteredClients.length;
+            document.getElementById('repAccCount').innerText = filteredAcc.length;
             document.getElementById('repAccSum').innerText = accSum.toFixed(2);
 
             document.getElementById('repRdCount').innerText = filteredRd.length;
@@ -1444,151 +1233,134 @@
             document.getElementById('repCommCount').innerText = filteredRd.length;
             document.getElementById('repCommSum').innerText = commSum.toFixed(2);
 
-            document.getElementById('repTotalCount').innerText = filteredClients.length + filteredRd.length;
-            document.getElementById('repGrandTotal').innerText = (accSum + rdSum).toFixed(2);
-        };
+            const grandTotal = accSum + rdSum + dfSum;
+            document.getElementById('repTotalCount').innerText = filteredAcc.length + filteredRd.length;
+            document.getElementById('repGrandTotal').innerText = grandTotal.toFixed(2);
+        }
 
-        window.exportBackupData = function() {
-            if (window.clients.length === 0 && window.rdPostings.length === 0) {
-                alert("No system data found to backup.");
+        // Printing Methods
+        function printCustomerSummary() {
+            const index = document.getElementById('clientIndex').value;
+            if (index === '') {
+                alert('Please select or save a customer first to print their registration form.');
                 return;
             }
-
-            const dataPackage = {
-                version: "1.2",
-                backupDate: new Date().toISOString(),
-                clients: window.clients,
-                rdPostings: window.rdPostings
-            };
-
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataPackage, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `PostOffice_Backup_${new Date().toISOString().slice(0,10)}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        };
-
-        window.triggerRestoreUpload = function() {
-            document.getElementById('restoreFileInput').click();
-        };
-
-        window.importRestoreData = function(event) {
-            const fileReader = new FileReader();
-            fileReader.onload = function(e) {
-                try {
-                    const parsedData = JSON.parse(e.target.result);
-                    if (parsedData.clients && parsedData.rdPostings) {
-                        if (confirm("Restoring will overwrite current database records. Continue?")) {
-                            set(clientsRef, parsedData.clients);
-                            set(rdRef, parsedData.rdPostings);
-                            alert("Data successfully restored to Cloud Realtime Database!");
-                        }
-                    } else {
-                        alert("Invalid backup file structure.");
-                    }
-                } catch (err) {
-                    alert("Error reading backup JSON file.");
-                }
-            };
-            if (event.target.files[0]) {
-                fileReader.readAsText(event.target.files[0]);
-            }
-        };
-
-        window.printCustomerSummary = function() {
-            const name = document.getElementById('customerName').value;
-            const accNo = document.getElementById('accountNo').value;
-
-            if (!name || !accNo) {
-                alert("Please select or enter customer information first to print details.");
-                return;
-            }
-
-            const printContainer = document.getElementById('printArea');
-            printContainer.innerHTML = `
+            const c = customers[parseInt(index)];
+            const printArea = document.getElementById('printArea');
+            printArea.innerHTML = `
                 <div class="print-header">
-                    <h2>INDIAN POST OFFICE MANAGEMENT SYSTEM</h2>
-                    <h3>Customer Registration Summary</h3>
+                    <h2>INDIAN POST OFFICE</h2>
+                    <p>Customer Account Opening Acknowledgement Form</p>
                 </div>
                 <table class="print-table">
-                    <tr><td><strong>Account Type:</strong></td><td>${document.getElementById('accountType').value}</td></tr>
-                    <tr><td><strong>Amount / Denomination:</strong></td><td>₹${document.getElementById('clientAmount').value}</td></tr>
-                    <tr><td><strong>Tenure:</strong></td><td>${document.getElementById('years').value}</td></tr>
-                    <tr><td><strong>Date:</strong></td><td>${document.getElementById('clientDate').value}</td></tr>
-                    <tr><td><strong>CIF No:</strong></td><td>${document.getElementById('cifNo').value}</td></tr>
-                    <tr><td><strong>ASLAAS No:</strong></td><td>${document.getElementById('aslaasNo').value}</td></tr>
-                    <tr><td><strong>Account No:</strong></td><td>${document.getElementById('accountNo').value}</td></tr>
-                    <tr><td><strong>Customer Name:</strong></td><td>${document.getElementById('customerName').value}</td></tr>
-                    <tr><td><strong>Father/Husband Name:</strong></td><td>${document.getElementById('guardianName').value}</td></tr>
-                    <tr><td><strong>DOB:</strong></td><td>${document.getElementById('dob').value}</td></tr>
-                    <tr><td><strong>Mobile No:</strong></td><td>${document.getElementById('mobileNo').value}</td></tr>
-                    <tr><td><strong>Aadhaar Card:</strong></td><td>[Aadhaar Redacted]</td></tr>
-                    <tr><td><strong>PAN Card:</strong></td><td>${document.getElementById('panCard').value}</td></tr>
-                    <tr><td><strong>Address:</strong></td><td>${document.getElementById('address').value}</td></tr>
+                    <tr><td><strong>Account Number:</strong></td><td>${c.accountNo}</td><td><strong>Account Type:</strong></td><td>${c.accountType}</td></tr>
+                    <tr><td><strong>Customer Name:</strong></td><td>${c.customerName}</td><td><strong>Guardian Name:</strong></td><td>${c.guardianName || 'N/A'}</td></tr>
+                    <tr><td><strong>CIF Number:</strong></td><td>${c.cifNo || 'N/A'}</td><td><strong>ASLAAS Number:</strong></td><td>${c.aslaasNo || 'N/A'}</td></tr>
+                    <tr><td><strong>Amount/Denomination:</strong></td><td>₹${c.amount.toFixed(2)}</td><td><strong>Tenure:</strong></td><td>${c.years}</td></tr>
+                    <tr><td><strong>Opening Date:</strong></td><td>${c.date}</td><td><strong>Mobile:</strong></td><td>${c.mobileNo || 'N/A'}</td></tr>
+                    <tr><td><strong>PAN Card:</strong></td><td>${c.panCard || 'N/A'}</td><td><strong>Aadhaar Card:</strong></td><td>${c.aadhaarCard || 'N/A'}</td></tr>
+                    <tr><td><strong>Address:</strong></td><td colspan="3">${c.address || 'N/A'}</td></tr>
                 </table>
+                <div style="margin-top: 50px; display: flex; justify-content: space-between;">
+                    <div>Customer Signature: __________________</div>
+                    <div>Postmaster Stamp & Sign: __________________</div>
+                </div>
             `;
-
             window.print();
-        };
+        }
 
-        window.printReportSummary = function() {
-            const printContainer = document.getElementById('printArea');
-            const fromDate = document.getElementById('fromDate').value || 'Beginning';
-            const toDate = document.getElementById('toDate').value || 'Present';
-
-            printContainer.innerHTML = `
+        function printBulkRDRecords() {
+            const printArea = document.getElementById('printArea');
+            printArea.innerHTML = `
                 <div class="print-header">
-                    <h2>INDIAN POST OFFICE MANAGEMENT SYSTEM</h2>
-                    <h3>Financial & Reporting Summary</h3>
-                    <p><strong>Period:</strong> ${fromDate} to ${toDate}</p>
+                    <h2>INDIAN POST OFFICE</h2>
+                    <p>Bulk RD Posting Summary Report</p>
                 </div>
                 <table class="print-table">
                     <thead>
-                        <tr>
-                            <th>Category</th>
-                            <th>Total Entries</th>
-                            <th>Total Amount (₹)</th>
-                        </tr>
+                        <tr><th>Date</th><th>Ref No</th><th>Amount</th><th>DF</th><th>TDS</th><th>Commission</th></tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>Account Opening Amount</td>
-                            <td>${document.getElementById('repAccCount').innerText}</td>
-                            <td>${document.getElementById('repAccSum').innerText}</td>
-                        </tr>
-                        <tr>
-                            <td>Bulk RD Posting Amount</td>
-                            <td>${document.getElementById('repRdCount').innerText}</td>
-                            <td>${document.getElementById('repRdSum').innerText}</td>
-                        </tr>
-                        <tr>
-                            <td>Total DF</td>
-                            <td>${document.getElementById('repDfCount').innerText}</td>
-                            <td>${document.getElementById('repDfSum').innerText}</td>
-                        </tr>
-                        <tr>
-                            <td>Total TDS</td>
-                            <td>${document.getElementById('repTdsCount').innerText}</td>
-                            <td>${document.getElementById('repTdsSum').innerText}</td>
-                        </tr>
-                        <tr>
-                            <td>Total Commission</td>
-                            <td>${document.getElementById('repCommCount').innerText}</td>
-                            <td>${document.getElementById('repCommSum').innerText}</td>
-                        </tr>
-                        <tr style="font-weight: bold;">
-                            <td>Grand Total</td>
-                            <td>${document.getElementById('repTotalCount').innerText}</td>
-                            <td>${document.getElementById('repGrandTotal').innerText}</td>
-                        </tr>
+                        ${rdPostings.map(r => `
+                            <tr>
+                                <td>${r.date}</td>
+                                <td>${r.refNo}</td>
+                                <td>₹${r.amount.toFixed(2)}</td>
+                                <td>₹${r.df.toFixed(2)}</td>
+                                <td>₹${r.tds.toFixed(2)}</td>
+                                <td>₹${r.commission.toFixed(2)}</td>
+                            </tr>
+                        `).join('')}
                     </tbody>
                 </table>
             `;
-
             window.print();
-        };
+        }
+
+        function printReportSummary() {
+            const printArea = document.getElementById('printArea');
+            printArea.innerHTML = `
+                <div class="print-header">
+                    <h2>INDIAN POST OFFICE</h2>
+                    <p>Financial Summary & Analytics Report</p>
+                </div>
+                <table class="print-table">
+                    <thead>
+                        <tr><th>Category</th><th>Total Count</th><th>Total Amount (₹)</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Account Opening Sum</td><td>${document.getElementById('repAccCount').innerText}</td><td>₹${document.getElementById('repAccSum').innerText}</td></tr>
+                        <tr><td>Bulk RD Posting Sum</td><td>${document.getElementById('repRdCount').innerText}</td><td>₹${document.getElementById('repRdSum').innerText}</td></tr>
+                        <tr><td>Default Fee (DF) Total</td><td>${document.getElementById('repDfCount').innerText}</td><td>₹${document.getElementById('repDfSum').innerText}</td></tr>
+                        <tr><td>TDS Total</td><td>${document.getElementById('repTdsCount').innerText}</td><td>₹${document.getElementById('repTdsSum').innerText}</td></tr>
+                        <tr><td>Commission Total</td><td>${document.getElementById('repCommCount').innerText}</td><td>₹${document.getElementById('repCommSum').innerText}</td></tr>
+                        <tr style="font-weight:bold;"><td>Grand Total</td><td>${document.getElementById('repTotalCount').innerText}</td><td>₹${document.getElementById('repGrandTotal').innerText}</td></tr>
+                    </tbody>
+                </table>
+            `;
+            window.print();
+        }
+
+        // Backup & Restore System
+        function exportBackupData() {
+            const backup = { customers, rdPostings, timestamp: new Date().toISOString() };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `ipo_backup_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function triggerRestoreUpload() {
+            document.getElementById('restoreFileInput').click();
+        }
+
+        function importRestoreData(event) {
+            const fileReader = new FileReader();
+            fileReader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed.customers && parsed.rdPostings) {
+                        customers = parsed.customers;
+                        rdPostings = parsed.rdPostings;
+                        saveToStorage();
+                        renderDashboard();
+                        renderCustomerTable();
+                        renderRdSelectionList();
+                        renderRdList();
+                        generateReport();
+                        alert('Database successfully restored!');
+                    } else {
+                        alert('Invalid backup file structure.');
+                    }
+                } catch (err) {
+                    alert('Error parsing JSON backup file.');
+                }
+            };
+            fileReader.readAsText(event.target.files[0]);
+        }
     </script>
 </body>
 </html>
